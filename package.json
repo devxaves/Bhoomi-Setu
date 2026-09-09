@@ -10,7 +10,7 @@
     "migrate": "npx tsx scripts/migrate.ts"
   },
   "dependencies": {
-    "@clerk/nextjs": "latest",
+    "@clerk/nextjs": "^6.31.9",
     "@hookform/resolvers": "^3.10.0",
     "@mapbox/mapbox-gl-draw": "^1.5.1",
     "@maplibre/maplibre-gl-geocoder": "^1.9.0",
