@@ -14,8 +14,8 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
-  // Point to this project root to avoid lockfile confusion on OneDrive
-  outputFileTracingRoot: __dirname,
+  // Only override outputFileTracingRoot locally to avoid OneDrive root lockfile confusion; let Vercel handle tracing natively
+  ...(process.env.VERCEL ? {} : { outputFileTracingRoot: __dirname }),
   // pg and tesseract.js are Node.js native/WASM — don't bundle
   serverExternalPackages: ['pg', 'tesseract.js'],
   webpack: (config, { isServer }) => {
