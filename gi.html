@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Bhuvan WebGIS Integration</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+  <style>
+    #map { height: 100vh; width: 100%; }
+  </style>
+</head>
+<body>
+  <h3 style="text-align:center;">WebGIS with Bhuvan & Free Maps</h3>
+  <div id="map"></div>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script>
+    // Initialize map
+    var map = L.map('map').setView([20.5937, 78.9629], 5); // India
+
+    // OpenStreetMap as base
+    var osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+
+    // Bhuvan WMS Example (LULC Layer)
+    var bhuvanWMS = L.tileLayer.wms("https://bhuvan-app1.nrsc.gov.in/tilecache/service?", {
+      layers: "india_lulc",   // Example layer name
+      format: "image/png",
+      transparent: true,
+      attribution: "Bhuvan NRSC/ISRO"
+    }).addTo(map);
+
+    // ESRI Free Satellite as optional layer
+    var esriSat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+      attribution: 'Tiles © Esri'
+    });
+
+    // Layer control
+    var baseMaps = {
+      "OpenStreetMap": osm,
+      "ESRI Satellite": esriSat
+    };
+
+    var overlayMaps = {
+      "Bhuvan LULC": bhuvanWMS
+    };
+
+    L.control.layers(baseMaps, overlayMaps).addTo(map);
+  </script>
+</body>
+</html>

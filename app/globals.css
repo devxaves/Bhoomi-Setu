@@ -1,0 +1,288 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+/* MapLibre GL — must be imported globally for map to render correctly */
+@import "maplibre-gl/dist/maplibre-gl.css";
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  /* BhoomiSetu — Institutional Saffron/Green/White Theme */
+  --background: hsl(40 20% 99%);
+  --foreground: hsl(220 15% 10%);
+  --card: hsl(0 0% 100%);
+  --card-foreground: hsl(220 15% 10%);
+  --popover: hsl(0 0% 100%);
+  --popover-foreground: hsl(220 15% 10%);
+  --primary: hsl(32 95% 44%); /* Deep saffron — institutional, authoritative */
+  --primary-foreground: hsl(0 0% 100%);
+  --secondary: hsl(152 55% 33%); /* Deep green — governance, trust */
+  --secondary-foreground: hsl(0 0% 100%);
+  --muted: hsl(40 10% 95%);
+  --muted-foreground: hsl(220 10% 45%);
+  --accent: hsl(152 40% 95%);
+  --accent-foreground: hsl(152 55% 25%);
+  --destructive: hsl(0 72% 51%);
+  --destructive-foreground: hsl(0 0% 100%);
+  --border: hsl(220 10% 90%);
+  --input: hsl(220 10% 90%);
+  --ring: hsl(32 95% 44%);
+  --chart-1: hsl(32 95% 44%); /* Saffron */
+  --chart-2: hsl(152 55% 33%); /* Green */
+  --chart-3: hsl(40 90% 60%); /* Gold */
+  --chart-4: hsl(200 70% 45%); /* Blue */
+  --chart-5: hsl(0 72% 51%); /* Red */
+  --radius: 0.625rem;
+  --sidebar: hsl(0 0% 100%);
+  --sidebar-foreground: hsl(220 15% 10%);
+  --sidebar-primary: hsl(32 95% 44%);
+  --sidebar-primary-foreground: hsl(0 0% 100%);
+  --sidebar-accent: hsl(152 40% 95%);
+  --sidebar-accent-foreground: hsl(152 55% 25%);
+  --sidebar-border: hsl(220 10% 90%);
+  --sidebar-ring: hsl(32 95% 44%);
+
+  /* Animation variables */
+  --animation-fast: 0.15s;
+  --animation-normal: 0.3s;
+  --animation-slow: 0.5s;
+  --animation-extra-slow: 0.7s;
+}
+
+@theme inline {
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* ============================================================
+   ANIMATIONS
+   ============================================================ */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideInLeft {
+  from { opacity: 0; transform: translateX(-24px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(24px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes pulse-subtle {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes countUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn var(--animation-normal) ease-out;
+}
+
+.animate-slide-in-left {
+  animation: slideInLeft var(--animation-normal) ease-out;
+}
+
+.animate-slide-in-right {
+  animation: slideInRight var(--animation-normal) ease-out;
+}
+
+.animate-scale-in {
+  animation: scaleIn var(--animation-normal) ease-out;
+}
+
+.animate-gradient {
+  background-size: 200% 200%;
+  animation: gradientShift 4s ease infinite;
+}
+
+.animate-count-up {
+  animation: countUp var(--animation-slow) ease-out;
+}
+
+/* ============================================================
+   RAG STATUS BADGES (Red / Amber / Green / Lapsed)
+   ============================================================ */
+.rag-green {
+  @apply bg-emerald-100 text-emerald-800 border-emerald-300;
+}
+
+.rag-amber {
+  @apply bg-amber-100 text-amber-800 border-amber-300;
+}
+
+.rag-red {
+  @apply bg-red-100 text-red-800 border-red-300;
+  animation: pulse-subtle 2s ease-in-out infinite;
+}
+
+.rag-lapsed {
+  @apply bg-gray-800 text-white border-gray-900;
+}
+
+.rag-dot-green {
+  @apply w-2.5 h-2.5 rounded-full bg-emerald-500;
+}
+
+.rag-dot-amber {
+  @apply w-2.5 h-2.5 rounded-full bg-amber-500;
+}
+
+.rag-dot-red {
+  @apply w-2.5 h-2.5 rounded-full bg-red-500;
+  animation: pulse-subtle 1.5s ease-in-out infinite;
+}
+
+.rag-dot-lapsed {
+  @apply w-2.5 h-2.5 rounded-full bg-gray-800;
+}
+
+/* ============================================================
+   STAGE PIPELINE (Workflow visualization)
+   ============================================================ */
+.stage-pill {
+  @apply inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border transition-all;
+}
+
+.stage-pill-active {
+  @apply bg-amber-500 text-white border-amber-600 shadow-sm;
+}
+
+.stage-pill-completed {
+  @apply bg-emerald-500 text-white border-emerald-600;
+}
+
+.stage-pill-pending {
+  @apply bg-gray-100 text-gray-500 border-gray-200;
+}
+
+/* ============================================================
+   ENHANCED COMPONENTS
+   ============================================================ */
+.btn-enhanced {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.2s ease;
+}
+
+.btn-enhanced::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
+  transition: left 0.4s ease;
+}
+
+.btn-enhanced:hover::before {
+  left: 100%;
+}
+
+.glass {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.card-enhanced {
+  transition: all 0.2s ease;
+  border: 1px solid hsl(220 10% 90%);
+  background: white;
+}
+
+.card-enhanced:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  border-color: hsl(32 70% 50% / 0.2);
+}
+
+/* Mock integration badge */
+.mock-badge {
+  @apply inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider;
+  @apply bg-yellow-100 text-yellow-800 border border-yellow-300;
+}
+
+/* ============================================================
+   MAP STYLES
+   ============================================================ */
+.maplibregl-popup-content {
+  @apply rounded-lg shadow-lg border-0 p-3;
+  background: white;
+  max-width: 280px;
+}
+
+.maplibregl-popup-tip {
+  border-top-color: white !important;
+}
+
+.maplibregl-ctrl-group {
+  @apply shadow-lg;
+}
+
+.maplibregl-ctrl-group button {
+  @apply transition-colors;
+}
