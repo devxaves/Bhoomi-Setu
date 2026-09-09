@@ -488,7 +488,7 @@ export default function ProjectWorkflowPage() {
           <div className="flex items-center gap-3">
             <div className="bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-center">
               <div className="text-[10px] uppercase font-semibold text-slate-400">Risk Score</div>
-              <div className="text-sm font-extrabold text-slate-800">{project.risk_score.toFixed(1)}/100</div>
+              <div className="text-sm font-extrabold text-slate-800">{Number(project.risk_score ?? 0).toFixed(1)}/100</div>
             </div>
             <div className="bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-center">
               <div className="text-[10px] uppercase font-semibold text-slate-400">Current Stage</div>

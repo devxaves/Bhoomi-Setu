@@ -9,7 +9,10 @@
  *   const result = await query('SELECT * FROM projects WHERE id = $1', [id]);
  */
 
-import { Pool, PoolClient, QueryResult, QueryResultRow } from 'pg';
+import { Pool, PoolClient, QueryResult, QueryResultRow, types } from 'pg';
+
+// Parse PostgreSQL NUMERIC/DECIMAL (OID 1700) as floating point numbers instead of strings
+types.setTypeParser(1700, (val: string) => (val === null ? null : parseFloat(val)));
 
 // Singleton pool — reused across all API routes in the Node.js process
 let pool: Pool | null = null;

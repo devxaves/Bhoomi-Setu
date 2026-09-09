@@ -59,8 +59,8 @@ interface Project {
   project_type: string | null;
   current_stage: string;
   status_flag: "green" | "amber" | "red" | "lapsed";
-  risk_score: number;
-  alignment_geojson: Polygon | MultiPolygon | null;
+  risk_score: number | string;
+  alignment_geojson: any;
   land_requiring_body: string;
 }
 
@@ -139,7 +139,7 @@ export default function AtlasPage() {
     }
   }, [parcelsData, selectedProject]);
 
-  const handleProjectSelect = useCallback((project: Project) => {
+  const handleProjectSelect = useCallback((project: any) => {
     setSelectedProject(project);
     setAlignment(project.alignment_geojson);
     setDisplayedParcels([]);
@@ -336,8 +336,8 @@ export default function AtlasPage() {
               {selectedProject.name}
             </span>
             {[
-              { label: "Stage", value: STAGE_LABELS[selectedProject.current_stage] },
-              { label: "Risk", value: selectedProject.risk_score.toFixed(1) },
+              { label: "Stage", value: STAGE_LABELS[selectedProject.current_stage] ?? selectedProject.current_stage },
+              { label: "Risk", value: Number(selectedProject.risk_score ?? 0).toFixed(1) },
               { label: "Type", value: selectedProject.project_type ?? "—" },
             ].map((item) => (
               <span key={item.label} className="text-gray-500">
@@ -357,6 +357,9 @@ export default function AtlasPage() {
 
         {/* Map */}
         <ParcelMap
+          projects={visibleProjects}
+          selectedProject={selectedProject}
+          onProjectSelect={handleProjectSelect}
           parcels={displayedParcels}
           projectAlignment={alignment}
           onAlignmentDraw={setAlignment}
@@ -368,7 +371,7 @@ export default function AtlasPage() {
         {!selectedProject && !projectsLoading && (
           <div className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-white/90 backdrop-blur rounded-xl shadow-lg border px-4 py-2 text-sm text-gray-600 flex items-center gap-2 pointer-events-none">
             <AlertTriangle className="h-4 w-4 text-amber-500" />
-            Select a project from the left panel to view its parcels
+            Click any marker on the map or select a project from the left panel
           </div>
         )}
       </main>

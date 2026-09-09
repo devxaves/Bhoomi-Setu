@@ -279,14 +279,14 @@ export default function AlignmentDrawer({
                     className="text-xs font-bold"
                     style={{
                       color:
-                        p.risk_score >= 70
+                        Number(p.risk_score ?? 0) >= 70
                           ? "#ef4444"
-                          : p.risk_score >= 40
+                          : Number(p.risk_score ?? 0) >= 40
                           ? "#f59e0b"
                           : "#22c55e",
                     }}
                   >
-                    Risk {p.risk_score.toFixed(0)}
+                    Risk {Number(p.risk_score ?? 0).toFixed(0)}
                   </span>
                 </div>
               </div>

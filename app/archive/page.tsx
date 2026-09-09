@@ -331,7 +331,7 @@ export default function ArchivePage() {
                               : "bg-emerald-100 text-emerald-800"
                           }`}
                         >
-                          {r.riskScore.toFixed(1)}
+                          {Number(r.riskScore ?? 0).toFixed(1)}
                         </span>
                       </td>
 

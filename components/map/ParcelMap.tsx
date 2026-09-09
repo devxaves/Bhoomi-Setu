@@ -26,17 +26,33 @@ export interface ParcelFeature {
   village: string | null;
   district: string | null;
   state: string | null;
-  area_hectares: number | null;
+  area_hectares: number | string | null;
   land_type: string | null;
   geometry_geojson: Polygon | MultiPolygon;
   ownership_status: "clear" | "disputed" | "under_verification";
   litigation_flag: boolean;
-  risk_score: number;
+  risk_score: number | string;
+}
+
+export interface ProjectMapItem {
+  id: string;
+  name: string;
+  district: string;
+  state: string;
+  land_requiring_body?: string;
+  project_type?: string | null;
+  current_stage: string;
+  status_flag: "green" | "amber" | "red" | "lapsed";
+  risk_score: number | string;
+  alignment_geojson?: any;
 }
 
 interface ParcelMapProps {
   parcels?: ParcelFeature[];
-  projectAlignment?: Polygon | MultiPolygon | null;
+  projectAlignment?: any;
+  projects?: ProjectMapItem[];
+  selectedProject?: ProjectMapItem | null;
+  onProjectSelect?: (project: ProjectMapItem) => void;
   onParcelClick?: (parcel: ParcelFeature) => void;
   onAlignmentDraw?: (geojson: Polygon | MultiPolygon) => void;
   drawMode?: boolean; // enable alignment drawing
@@ -45,6 +61,42 @@ interface ParcelMapProps {
 }
 
 type RasterLayer = "osm" | "satellite" | "topo";
+
+// Extract a representative [lng, lat] coordinate from any GeoJSON geometry
+function getProjectCoordinates(geo: any): [number, number] | null {
+  if (!geo) return null;
+  if (geo.type === "Point" && Array.isArray(geo.coordinates)) {
+    return [geo.coordinates[0], geo.coordinates[1]];
+  }
+  if (geo.type === "LineString" && Array.isArray(geo.coordinates) && geo.coordinates.length > 0) {
+    const coords = geo.coordinates;
+    const midIndex = Math.floor(coords.length / 2);
+    return [coords[midIndex][0], coords[midIndex][1]];
+  }
+  if (geo.type === "Polygon" && Array.isArray(geo.coordinates) && geo.coordinates[0]?.length > 0) {
+    const ring = geo.coordinates[0];
+    let sumLng = 0;
+    let sumLat = 0;
+    for (let i = 0; i < ring.length; i++) {
+      sumLng += ring[i][0];
+      sumLat += ring[i][1];
+    }
+    return [sumLng / ring.length, sumLat / ring.length];
+  }
+  if (geo.type === "MultiPolygon" && Array.isArray(geo.coordinates)) {
+    const ring = geo.coordinates[0]?.[0];
+    if (ring && ring.length > 0) {
+      let sumLng = 0;
+      let sumLat = 0;
+      for (let i = 0; i < ring.length; i++) {
+        sumLng += ring[i][0];
+        sumLat += ring[i][1];
+      }
+      return [sumLng / ring.length, sumLat / ring.length];
+    }
+  }
+  return null;
+}
 
 // Risk score → fill color (0-100 scale)
 function riskColor(score: number): string {
@@ -70,22 +122,25 @@ function buildParcelGeoJSON(parcels: ParcelFeature[]): FeatureCollection {
     type: "FeatureCollection",
     features: parcels
       .filter((p) => p.geometry_geojson)
-      .map((p) => ({
-        type: "Feature",
-        id: p.id,
-        geometry: p.geometry_geojson,
-        properties: {
+      .map((p) => {
+        const score = Number(p.risk_score ?? 0);
+        return {
+          type: "Feature",
           id: p.id,
-          ulpin: p.ulpin,
-          village: p.village ?? "",
-          district: p.district ?? "",
-          area_hectares: p.area_hectares ?? 0,
-          ownership_status: p.ownership_status,
-          litigation_flag: p.litigation_flag,
-          risk_score: p.risk_score,
-          fill_color: riskColor(p.risk_score),
-        },
-      })),
+          geometry: p.geometry_geojson,
+          properties: {
+            id: p.id,
+            ulpin: p.ulpin,
+            village: p.village ?? "",
+            district: p.district ?? "",
+            area_hectares: Number(p.area_hectares ?? 0),
+            ownership_status: p.ownership_status,
+            litigation_flag: p.litigation_flag,
+            risk_score: score,
+            fill_color: riskColor(score),
+          },
+        };
+      }),
   };
 }
 
@@ -115,6 +170,9 @@ const RASTER_SOURCES: Record<RasterLayer, { name: string; tiles: string[]; attri
 export default function ParcelMap({
   parcels = [],
   projectAlignment = null,
+  projects = [],
+  selectedProject = null,
+  onProjectSelect,
   onParcelClick,
   onAlignmentDraw,
   drawMode = false,
@@ -123,6 +181,7 @@ export default function ParcelMap({
 }: ParcelMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MapLibreMap | null>(null);
+  const markersRef = useRef<any[]>([]);
   const drawRef = useRef<unknown>(null);
   const [activeLayer, setActiveLayer] = useState<RasterLayer>("osm");
   const [selectedParcel, setSelectedParcel] = useState<ParcelFeature | null>(null);
@@ -253,6 +312,17 @@ export default function ParcelMap({
             "fill-color": "#6366f1",
             "fill-opacity": 0.18,
           },
+          filter: ["in", "$type", "Polygon"],
+        });
+        map.addLayer({
+          id: "alignment-glow",
+          type: "line",
+          source: "alignment",
+          paint: {
+            "line-color": "#a5b4fc",
+            "line-width": 6,
+            "line-opacity": 0.45,
+          },
         });
         map.addLayer({
           id: "alignment-stroke",
@@ -260,7 +330,7 @@ export default function ParcelMap({
           source: "alignment",
           paint: {
             "line-color": "#4f46e5",
-            "line-width": 2.5,
+            "line-width": 3,
             "line-dasharray": [4, 2],
           },
         });
@@ -336,22 +406,7 @@ export default function ParcelMap({
     if (!mapLoaded || !mapRef.current) return;
     const src = mapRef.current.getSource("parcels") as GeoJSONSource | undefined;
     src?.setData(buildParcelGeoJSON(parcels));
-
-    // Auto-fit bounds if parcels exist
-    if (parcels.length > 0 && !initialBounds) {
-      try {
-        import("@turf/turf").then(({ bbox, featureCollection, feature }) => {
-          const fc = featureCollection(
-            parcels
-              .filter((p) => p.geometry_geojson)
-              .map((p) => feature(p.geometry_geojson))
-          );
-          const [minLng, minLat, maxLng, maxLat] = bbox(fc);
-          mapRef.current?.fitBounds([[minLng, minLat], [maxLng, maxLat]], { padding: 60, maxZoom: 15 });
-        });
-      } catch { /* ignore */ }
-    }
-  }, [parcels, mapLoaded, initialBounds]);
+  }, [parcels, mapLoaded]);
 
   // --- Sync alignment overlay ---
   useEffect(() => {
@@ -366,6 +421,174 @@ export default function ParcelMap({
       src?.setData({ type: "FeatureCollection", features: [] });
     }
   }, [projectAlignment, mapLoaded]);
+
+  // --- Render project markers on map ---
+  useEffect(() => {
+    if (!mapLoaded || !mapRef.current) return;
+    const map = mapRef.current;
+
+    // Clean up old markers
+    markersRef.current.forEach((m) => m.remove());
+    markersRef.current = [];
+
+    if (!projects || projects.length === 0) return;
+
+    import("maplibre-gl").then((maplibre) => {
+      projects.forEach((proj) => {
+        const coords = getProjectCoordinates(proj.alignment_geojson);
+        if (!coords) return;
+
+        const isSelected = selectedProject?.id === proj.id;
+        const risk = Number(proj.risk_score ?? 0);
+        const color =
+          proj.status_flag === "green"
+            ? "#10b981"
+            : proj.status_flag === "amber"
+            ? "#f59e0b"
+            : proj.status_flag === "red"
+            ? "#ef4444"
+            : "#8b5cf6";
+
+        const el = document.createElement("div");
+        el.className = "cursor-pointer select-none group";
+        el.style.zIndex = isSelected ? "50" : "20";
+
+        // Display label: short project name or district
+        const shortLabel = proj.name.split(":")[0].replace(/Expansion|Widening|Extension/gi, "").trim() || proj.district;
+
+        el.innerHTML = `
+          <div style="display: flex; flex-direction: column; align-items: center; cursor: pointer;">
+            <div style="
+              display: flex;
+              align-items: center;
+              gap: 6px;
+              padding: 4px 10px;
+              border-radius: 9999px;
+              font-size: 11px;
+              font-weight: 600;
+              background-color: ${isSelected ? "#0f172a" : "#ffffff"};
+              color: ${isSelected ? "#f8fafc" : "#1e293b"};
+              border: 1.5px solid ${isSelected ? "#f59e0b" : "#cbd5e1"};
+              box-shadow: ${isSelected ? "0 10px 15px -3px rgba(0,0,0,0.3), 0 0 0 3px rgba(245, 158, 11, 0.45)" : "0 3px 6px -1px rgba(0,0,0,0.12)"};
+              transform: ${isSelected ? "scale(1.1)" : "scale(1)"};
+              transition: all 0.2s ease;
+            ">
+              <span style="width: 8px; height: 8px; border-radius: 50%; background-color: ${color}; flex-shrink: 0; box-shadow: 0 0 0 1.5px white;"></span>
+              <span style="max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                ${shortLabel}
+              </span>
+            </div>
+            <div style="
+              width: 0;
+              height: 0;
+              border-left: 4px solid transparent;
+              border-right: 4px solid transparent;
+              border-top: 5px solid ${isSelected ? "#f59e0b" : "#94a3b8"};
+              margin-top: -1px;
+            "></div>
+          </div>
+        `;
+
+        // Popup tooltip
+        const popup = new maplibre.Popup({
+          offset: 14,
+          closeButton: false,
+          closeOnClick: false,
+        }).setHTML(`
+          <div style="font-family: system-ui, sans-serif; padding: 4px 6px; font-size: 11px; max-width: 220px;">
+            <div style="font-weight: 700; color: #0f172a; margin-bottom: 2px; line-height: 1.2;">${proj.name}</div>
+            <div style="color: #64748b; font-size: 10px; margin-bottom: 5px;">📍 ${proj.district}, ${proj.state}</div>
+            <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #e2e8f0; padding-top: 4px;">
+              <span style="font-size: 9px; font-weight: 700; text-transform: uppercase; padding: 1px 5px; border-radius: 4px; background: ${color}; color: #fff;">
+                ${proj.status_flag}
+              </span>
+              <span style="font-weight: 600; color: #334155;">Risk: ${risk.toFixed(1)}</span>
+            </div>
+            <div style="margin-top: 4px; font-size: 10px; color: #d97706; font-weight: 500;">
+              Click to view corridor & parcels →
+            </div>
+          </div>
+        `);
+
+        el.addEventListener("mouseenter", () => {
+          if (!isSelected) popup.setLngLat(coords).addTo(map);
+        });
+        el.addEventListener("mouseleave", () => {
+          popup.remove();
+        });
+
+        el.addEventListener("click", (e) => {
+          e.stopPropagation();
+          popup.remove();
+          onProjectSelect?.(proj);
+        });
+
+        const marker = new maplibre.Marker({ element: el, anchor: "bottom" })
+          .setLngLat(coords)
+          .addTo(map);
+
+        markersRef.current.push(marker);
+      });
+    });
+  }, [projects, selectedProject, mapLoaded, onProjectSelect]);
+
+  // --- Auto-fit camera to selected project or national view ---
+  useEffect(() => {
+    if (!mapLoaded || !mapRef.current) return;
+    const map = mapRef.current;
+
+    if (selectedProject) {
+      import("@turf/turf").then(({ bbox, feature, featureCollection }) => {
+        try {
+          if (parcels.length > 0) {
+            const validParcels = parcels.filter((p) => p.geometry_geojson);
+            if (validParcels.length > 0) {
+              const fc = featureCollection(validParcels.map((p) => feature(p.geometry_geojson)));
+              const [minLng, minLat, maxLng, maxLat] = bbox(fc);
+              map.fitBounds([[minLng, minLat], [maxLng, maxLat]], { padding: 80, maxZoom: 15 });
+              return;
+            }
+          }
+
+          if (projectAlignment) {
+            const [minLng, minLat, maxLng, maxLat] = bbox(feature(projectAlignment));
+            if (minLng === maxLng && minLat === maxLat) {
+              map.flyTo({ center: [minLng, minLat], zoom: 13 });
+            } else {
+              map.fitBounds([[minLng, minLat], [maxLng, maxLat]], { padding: 80, maxZoom: 14 });
+            }
+            return;
+          }
+
+          const coords = getProjectCoordinates(selectedProject.alignment_geojson);
+          if (coords) {
+            map.flyTo({ center: coords, zoom: 12 });
+          }
+        } catch (e) {
+          console.error("Camera fit error:", e);
+        }
+      });
+    } else if (projects && projects.length > 0 && !initialBounds) {
+      // Show all project markers across India
+      const allCoords = projects
+        .map((p) => getProjectCoordinates(p.alignment_geojson))
+        .filter((c): c is [number, number] => c !== null);
+
+      if (allCoords.length > 1) {
+        let minLng = allCoords[0][0];
+        let maxLng = allCoords[0][0];
+        let minLat = allCoords[0][1];
+        let maxLat = allCoords[0][1];
+        allCoords.forEach(([lng, lat]) => {
+          if (lng < minLng) minLng = lng;
+          if (lng > maxLng) maxLng = lng;
+          if (lat < minLat) minLat = lat;
+          if (lat > maxLat) maxLat = lat;
+        });
+        map.fitBounds([[minLng, minLat], [maxLng, maxLat]], { padding: 80, maxZoom: 7 });
+      }
+    }
+  }, [selectedProject, projectAlignment, parcels, mapLoaded, projects, initialBounds]);
 
   // --- Switch raster layer ---
   useEffect(() => {
@@ -528,11 +751,16 @@ export default function ParcelMap({
                 <span
                   className="text-xs font-black px-2 py-0.5 rounded-full"
                   style={{
-                    backgroundColor: selectedParcel.risk_score >= 60 ? "#fee2e2" : selectedParcel.risk_score >= 30 ? "#fef3c7" : "#dcfce7",
-                    color: riskColor(selectedParcel.risk_score),
+                    backgroundColor:
+                      Number(selectedParcel.risk_score ?? 0) >= 60
+                        ? "#fee2e2"
+                        : Number(selectedParcel.risk_score ?? 0) >= 30
+                        ? "#fef3c7"
+                        : "#dcfce7",
+                    color: riskColor(Number(selectedParcel.risk_score ?? 0)),
                   }}
                 >
-                  {selectedParcel.risk_score.toFixed(1)} / 100
+                  {Number(selectedParcel.risk_score ?? 0).toFixed(1)} / 100
                 </span>
                 <a
                   href="/risk"

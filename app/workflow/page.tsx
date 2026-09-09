@@ -179,10 +179,10 @@ export default function WorkflowIndexPage() {
 
                     <div className="text-xs text-gray-400">
                       Risk: <span className={`font-semibold ${
-                        project.risk_score >= 70 ? "text-red-600"
-                        : project.risk_score >= 40 ? "text-amber-600"
+                        Number(project.risk_score ?? 0) >= 70 ? "text-red-600"
+                        : Number(project.risk_score ?? 0) >= 40 ? "text-amber-600"
                         : "text-green-600"
-                      }`}>{project.risk_score.toFixed(1)}</span>
+                      }`}>{Number(project.risk_score ?? 0).toFixed(1)}</span>
                     </div>
                   </div>
                 </div>
