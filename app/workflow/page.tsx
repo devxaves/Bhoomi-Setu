@@ -8,6 +8,7 @@
 
 import useSWR from "swr";
 import Link from "next/link";
+import { useState } from "react";
 import {
   Shield,
   ChevronRight,
@@ -15,6 +16,8 @@ import {
   CheckCircle2,
   Clock,
   Loader2,
+  Search,
+  MapPin,
 } from "lucide-react";
 import { STAGE_INFO } from "@/lib/workflow";
 import type { Stage } from "@/lib/workflow";
@@ -31,6 +34,8 @@ interface Project {
   stage_started_at: string;
   status_flag: "green" | "amber" | "red" | "lapsed";
   risk_score: number;
+  parcel_count: number;
+  ulpins: string[];
 }
 
 interface Notification {
@@ -49,7 +54,11 @@ const RAG_STYLES: Record<string, { badge: string; row: string }> = {
 };
 
 export default function WorkflowIndexPage() {
-  const { data: projectsData, isLoading } = useSWR<{ data: Project[] }>("/api/projects", fetcher);
+  const [searchQuery, setSearchQuery] = useState("");
+  const projectsUrl = searchQuery
+    ? `/api/projects?limit=200&search=${encodeURIComponent(searchQuery)}`
+    : "/api/projects?limit=200";
+  const { data: projectsData, isLoading } = useSWR<{ data: Project[]; pagination?: { total: number } }>(projectsUrl, fetcher);
   const { data: notifsData } = useSWR<{ data: Notification[] }>(
     "/api/notifications?upcoming=true",
     fetcher,
@@ -99,6 +108,18 @@ export default function WorkflowIndexPage() {
         })}
       </div>
 
+      {/* Search */}
+      <div className="relative mb-6">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+        <input
+          type="text"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="Search by project name, district, or ULPIN…"
+          className="w-full pl-10 pr-4 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-400 bg-white"
+        />
+      </div>
+
       {/* Project list */}
       {isLoading ? (
         <div className="flex items-center justify-center py-12 text-gray-400">
@@ -142,6 +163,22 @@ export default function WorkflowIndexPage() {
                       <div className="text-xs text-gray-500 mt-0.5 truncate">
                         {project.land_requiring_body} · {project.district}, {project.state}
                       </div>
+                      {project.ulpins?.length > 0 && (
+                        <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+                          <MapPin className="h-3 w-3 text-amber-500 shrink-0" />
+                          <span className="text-[10px] font-mono text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded">
+                            {project.ulpins.length} parcel{project.ulpins.length !== 1 ? "s" : ""}
+                          </span>
+                          {project.ulpins.slice(0, 3).map((u) => (
+                            <span key={u} className="text-[10px] font-mono text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded">
+                              …{u.slice(-6)}
+                            </span>
+                          ))}
+                          {project.ulpins.length > 3 && (
+                            <span className="text-[10px] text-gray-400">+{project.ulpins.length - 3} more</span>
+                          )}
+                        </div>
+                      )}
                     </div>
                     <span className={`inline-flex shrink-0 items-center px-2 py-0.5 rounded-full text-xs font-semibold border ${s.badge}`}>
                       {project.status_flag.toUpperCase()}

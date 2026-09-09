@@ -64,6 +64,18 @@ interface Project {
   land_requiring_body: string;
 }
 
+interface ProjectSummary {
+  id: string;
+  name: string;
+  district: string;
+  state: string;
+  project_type: string | null;
+  current_stage: string;
+  status_flag: "green" | "amber" | "red" | "lapsed";
+  risk_score: number | string;
+  land_requiring_body: string;
+}
+
 // ── Helpers ────────────────────────────────────────────────────────────────
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json());
@@ -99,6 +111,7 @@ export default function AtlasPage() {
   const [alignment, setAlignment] = useState<Polygon | MultiPolygon | null>(null);
   const [showFilters, setShowFilters] = useState(false);
   const [drawMode, setDrawMode] = useState(false);
+  const [seedStatus, setSeedStatus] = useState<"idle" | "seeding" | "done" | "error">("idle");
 
   // Build query string for projects API
   const projectsUrl = (() => {
@@ -108,11 +121,31 @@ export default function AtlasPage() {
     return `/api/projects?${params.toString()}`;
   })();
 
-  const { data: projectsData, isLoading: projectsLoading } = useSWR<{
-    data: Project[];
+  const { data: projectsData, isLoading: projectsLoading, mutate } = useSWR<{
+    data: ProjectSummary[];
+    pagination: { page: number; limit: number; total: number; totalPages: number; hasNext: boolean; hasPrev: boolean };
   }>(projectsUrl, fetcher, { refreshInterval: 30000 });
 
   const projects = projectsData?.data ?? [];
+
+  // Auto-seed demo data on first load if projects exist but none have alignment
+  useEffect(() => {
+    if (projects.length === 0 || seedStatus !== "idle") return;
+    const hasAnyAlignment = projects.some((p) => (p as any).alignment_geojson);
+    if (hasAnyAlignment) {
+      setSeedStatus("done");
+      return;
+    }
+    setSeedStatus("seeding");
+    fetch("/api/seed/atlas", { method: "POST" })
+      .then((r) => r.json())
+      .then(() => {
+        setSeedStatus("done");
+        mutate();
+      })
+      .catch(() => setSeedStatus("error"));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [projects, seedStatus]);
 
   // Filtered by local search
   const visibleProjects = projects.filter((p) =>
@@ -124,11 +157,12 @@ export default function AtlasPage() {
 
   // Fetch parcels for selected project
   const parcelsUrl = selectedProject
-    ? `/api/parcels?project_id=${selectedProject.id}`
+    ? `/api/parcels?project_id=${selectedProject.id}&geometry=true`
     : null;
 
   const { data: parcelsData, isLoading: parcelsLoading } = useSWR<{
     data: ParcelFeature[];
+    count?: number;
   }>(parcelsUrl, fetcher);
 
   useEffect(() => {
@@ -139,9 +173,25 @@ export default function AtlasPage() {
     }
   }, [parcelsData, selectedProject]);
 
-  const handleProjectSelect = useCallback((project: any) => {
-    setSelectedProject(project);
-    setAlignment(project.alignment_geojson);
+  // Fetch full project details (with alignment_geojson) when a project is selected
+  const projectDetailUrl = selectedProject
+    ? `/api/projects/${selectedProject.id}`
+    : null;
+
+  const { data: projectDetailData } = useSWR<{ data: Project }>(
+    projectDetailUrl,
+    fetcher
+  );
+
+  useEffect(() => {
+    if (projectDetailData?.data) {
+      setAlignment(projectDetailData.data.alignment_geojson);
+    }
+  }, [projectDetailData]);
+
+  const handleProjectSelect = useCallback((project: { id: string; name: string; district: string; state: string; project_type?: string | null; current_stage: string; status_flag: "green" | "amber" | "red" | "lapsed"; risk_score: number | string; land_requiring_body?: string }) => {
+    setSelectedProject({ ...project, alignment_geojson: null } as Project);
+    setAlignment(null); // Will be fetched via projectDetailUrl
     setDisplayedParcels([]);
   }, []);
 
@@ -243,12 +293,26 @@ export default function AtlasPage() {
             <div className="flex flex-col items-center justify-center py-10 text-gray-400 px-4 text-center">
               <Building2 className="h-8 w-8 mb-2 opacity-50" />
               <p className="text-sm">No projects found</p>
-              {(districtFilter || statusFilter || searchQuery) && (
+              {(districtFilter || statusFilter || searchQuery) ? (
                 <button
                   onClick={() => { setDistrictFilter(""); setStatusFilter(""); setSearchQuery(""); }}
                   className="mt-2 text-xs text-amber-600 hover:underline"
                 >
                   Clear filters
+                </button>
+              ) : (
+                <button
+                  onClick={async () => {
+                    setSeedStatus("seeding");
+                    try {
+                      const res = await fetch("/api/seed/atlas", { method: "POST" });
+                      if (res.ok) { setSeedStatus("done"); mutate(); }
+                      else setSeedStatus("error");
+                    } catch { setSeedStatus("error"); }
+                  }}
+                  className="mt-3 px-4 py-2 bg-amber-600 text-white text-xs font-semibold rounded-lg hover:bg-amber-700 transition-colors"
+                >
+                  Load Demo Data
                 </button>
               )}
             </div>
@@ -269,6 +333,18 @@ export default function AtlasPage() {
                       <p className="text-sm font-medium text-gray-800 truncate">{project.name}</p>
                       <p className="text-xs text-gray-500 mt-0.5 truncate">{project.land_requiring_body}</p>
                       <p className="text-xs text-gray-400 mt-0.5">{project.district}, {project.state}</p>
+                      {"ulpins" in project && (project as any).ulpins?.length > 0 && (
+                        <div className="flex items-center gap-1 mt-1 flex-wrap">
+                          <span className="text-[10px] font-mono text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded">
+                            {(project as any).ulpins.length} parcel{(project as any).ulpins.length !== 1 ? "s" : ""}
+                          </span>
+                          {(project as any).ulpins.slice(0, 2).map((u: string) => (
+                            <span key={u} className="text-[10px] font-mono text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded">
+                              …{u.slice(-6)}
+                            </span>
+                          ))}
+                        </div>
+                      )}
                     </div>
                     <div className="flex flex-col items-end gap-1 shrink-0">
                       <span
@@ -294,6 +370,90 @@ export default function AtlasPage() {
             </div>
           )}
         </div>
+
+        {/* Risk Distribution Mini-Chart */}
+        {projects.length > 0 && !selectedProject && (
+          <div className="border-t px-4 py-3 bg-gray-50">
+            <div className="text-[10px] uppercase tracking-wider text-gray-400 mb-1.5 font-medium">Risk Distribution</div>
+            <div className="flex gap-1 h-14 items-end">
+              {(() => {
+                const buckets = [0, 0, 0]; // low, medium, high
+                projects.forEach((p) => {
+                  const s = Number(p.risk_score ?? 0);
+                  if (s >= 70) buckets[2]++;
+                  else if (s >= 40) buckets[1]++;
+                  else buckets[0]++;
+                });
+                const max = Math.max(...buckets, 1);
+                const colors = ["#22c55e", "#f59e0b", "#ef4444"];
+                const labels = ["Low", "Med", "High"];
+                return buckets.map((count, i) => (
+                  <div key={i} className="flex-1 flex flex-col items-center gap-0.5">
+                    <span className="text-[9px] font-semibold text-gray-500">{count}</span>
+                    <div className="w-full rounded-t" style={{ height: `${(count / max) * 100}%`, background: colors[i], minHeight: 2 }} />
+                    <span className="text-[9px] text-gray-400">{labels[i]}</span>
+                  </div>
+                ));
+              })()}
+            </div>
+            {seedStatus === "seeding" && (
+              <div className="mt-2 flex items-center gap-1.5 text-[10px] text-amber-600">
+                <Loader2 className="h-3 w-3 animate-spin" />
+                Seeding demo corridors & parcels…
+              </div>
+            )}
+            {seedStatus === "done" && (
+              <button
+                onClick={async () => {
+                  setSeedStatus("seeding");
+                  try {
+                    const res = await fetch("/api/seed/atlas", { method: "POST" });
+                    if (res.ok) { setSeedStatus("done"); mutate(); }
+                    else setSeedStatus("error");
+                  } catch { setSeedStatus("error"); }
+                }}
+                className="mt-2 text-[10px] text-amber-600 hover:underline"
+              >
+                Reload Demo Data
+              </button>
+            )}
+            {seedStatus === "error" && (
+              <button
+                onClick={async () => {
+                  setSeedStatus("seeding");
+                  try {
+                    const res = await fetch("/api/seed/atlas", { method: "POST" });
+                    if (res.ok) { setSeedStatus("done"); mutate(); }
+                    else setSeedStatus("error");
+                  } catch { setSeedStatus("error"); }
+                }}
+                className="mt-2 text-[10px] text-red-500 hover:underline"
+              >
+                Retry seeding
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* Stage Progress Indicator */}
+        {selectedProject && (
+          <div className="border-t px-4 py-3 bg-gray-50">
+            <div className="text-[10px] uppercase tracking-wider text-gray-400 mb-2 font-medium">Stage Progress</div>
+            <div className="flex items-center gap-0.5">
+              {Object.entries(STAGE_LABELS).map(([key, label], idx) => {
+                const currentIdx = Object.keys(STAGE_LABELS).indexOf(selectedProject.current_stage);
+                const isActive = idx === currentIdx;
+                const isComplete = idx < currentIdx;
+                return (
+                  <div key={key} className="flex-1 flex flex-col items-center">
+                    <div className={`w-full h-1.5 rounded-full transition-colors ${isComplete ? "bg-green-400" : isActive ? "bg-amber-400" : "bg-gray-200"}`} />
+                    <span className={`text-[8px] mt-1 leading-tight text-center ${isActive ? "text-amber-700 font-bold" : isComplete ? "text-green-600" : "text-gray-400"}`}>{label}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {/* Alignment Drawer (bottom of left panel) */}
         {selectedProject && (

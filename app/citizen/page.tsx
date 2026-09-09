@@ -28,6 +28,7 @@ import {
   KeyRound,
   FileText,
   HelpCircle,
+  Building2,
 } from "lucide-react";
 import type { CitizenParcelLookup } from "@/lib/db/queries/citizen";
 
@@ -53,6 +54,36 @@ export default function CitizenPortalPage() {
   const [grievanceMessage, setGrievanceMessage] = useState("");
   const [submittingGrievance, setSubmittingGrievance] = useState(false);
   const [grievanceResult, setGrievanceResult] = useState<string | null>(null);
+
+  // Project Search State
+  const [projectQuery, setProjectQuery] = useState("");
+  const [projectResults, setProjectResults] = useState<any[]>([]);
+  const [searchingProjects, setSearchingProjects] = useState(false);
+  const [projectSearchError, setProjectSearchError] = useState<string | null>(null);
+
+  const handleProjectSearch = async () => {
+    const q = projectQuery.trim();
+    if (q.length < 2) {
+      setProjectSearchError("Enter at least 2 characters to search.");
+      return;
+    }
+    setSearchingProjects(true);
+    setProjectSearchError(null);
+    setProjectResults([]);
+    try {
+      const res = await fetch(`/api/citizen/search?q=${encodeURIComponent(q)}`);
+      const json = await res.json();
+      if (!res.ok) {
+        setProjectSearchError(json.error || "No projects found.");
+      } else {
+        setProjectResults(json.data ?? []);
+      }
+    } catch {
+      setProjectSearchError("Network error searching projects.");
+    } finally {
+      setSearchingProjects(false);
+    }
+  };
 
   const handleLookup = async (targetUlpin?: string) => {
     const queryUlpin = (targetUlpin || ulpinInput).trim();
@@ -178,6 +209,78 @@ export default function CitizenPortalPage() {
               <AlertCircle className="h-4 w-4 shrink-0" />
               {error}
             </div>
+          )}
+        </div>
+
+        {/* ── Project Search (Public) ──────────────────────────────────── */}
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
+          <div className="flex items-center gap-2">
+            <Building2 className="h-4 w-4 text-amber-600" />
+            <h2 className="text-sm font-bold text-slate-800">Search Projects by Name or District</h2>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-2">
+            <div className="relative flex-1">
+              <Search className="absolute left-3.5 top-3.5 h-4 w-4 text-slate-400" />
+              <input
+                type="text"
+                placeholder="e.g. NH-48, Nashik, Highway Authority…"
+                value={projectQuery}
+                onChange={(e) => setProjectQuery(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleProjectSearch()}
+                className="w-full pl-10 pr-4 py-3 text-sm rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-amber-500"
+              />
+            </div>
+            <button
+              onClick={handleProjectSearch}
+              disabled={searchingProjects}
+              className="px-6 py-3 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold transition-all shadow-sm flex items-center justify-center gap-2 disabled:opacity-50"
+            >
+              {searchingProjects ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
+              Search
+            </button>
+          </div>
+
+          {projectSearchError && (
+            <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-xs text-red-700 flex items-center gap-2">
+              <AlertCircle className="h-4 w-4 shrink-0" />
+              {projectSearchError}
+            </div>
+          )}
+
+          {projectResults.length > 0 && (
+            <div className="space-y-2 max-h-64 overflow-y-auto">
+              {projectResults.map((p) => (
+                <div key={p.id} className="flex items-center justify-between p-3 rounded-xl border border-slate-100 hover:border-amber-300 hover:bg-amber-50 transition-colors">
+                  <div className="flex-1 min-w-0">
+                    <div className="font-semibold text-sm text-slate-800 truncate">{p.name}</div>
+                    <div className="text-xs text-slate-500 mt-0.5">
+                      {p.land_requiring_body} · {p.district}, {p.state}
+                    </div>
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${
+                        p.status_flag === "green" ? "bg-green-100 text-green-700"
+                        : p.status_flag === "amber" ? "bg-amber-100 text-amber-700"
+                        : p.status_flag === "red" ? "bg-red-100 text-red-700"
+                        : "bg-purple-100 text-purple-700"
+                      }`}>
+                        {p.status_flag?.toUpperCase()}
+                      </span>
+                      <span className="text-[10px] text-slate-400">Risk: {p.risk_score}</span>
+                    </div>
+                  </div>
+                  <a
+                    href={`/workflow/${p.id}`}
+                    className="ml-3 shrink-0 text-xs font-semibold text-amber-600 hover:text-amber-700 underline underline-offset-2"
+                  >
+                    View Details →
+                  </a>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {!searchingProjects && projectResults.length === 0 && !projectSearchError && projectQuery.length >= 2 && (
+            <p className="text-xs text-slate-400 text-center py-2">No projects found matching &ldquo;{projectQuery}&rdquo;</p>
           )}
         </div>
 

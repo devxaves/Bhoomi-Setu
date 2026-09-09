@@ -20,14 +20,20 @@ export async function GET(req: NextRequest) {
     const district    = searchParams.get('district')    ?? undefined;
     const state       = searchParams.get('state')       ?? undefined;
     const status_flag = searchParams.get('status_flag') ?? undefined;
+    const search      = searchParams.get('search')      ?? undefined;
+    const page        = searchParams.get('page')        ? parseInt(searchParams.get('page')!, 10) : undefined;
+    const limit       = searchParams.get('limit')       ? parseInt(searchParams.get('limit')!, 10) : undefined;
 
-    const projects = await listProjects({ district, state, status_flag });
+    const result = await listProjects(
+      { district, state, status_flag, search },
+      { page, limit }
+    );
 
-    return NextResponse.json({ data: projects, count: projects.length });
+    return NextResponse.json(result);
   } catch (err) {
     console.error('GET /api/projects error:', err);
     return NextResponse.json(
-      { error: 'Failed to fetch projects', details: (err as Error).message },
+      { error: 'Failed to fetch projects' },
       { status: 500 }
     );
   }
@@ -59,7 +65,7 @@ export async function POST(req: NextRequest) {
   } catch (err) {
     console.error('POST /api/projects error:', err);
     return NextResponse.json(
-      { error: 'Failed to create project', details: (err as Error).message },
+      { error: 'Failed to create project' },
       { status: 500 }
     );
   }

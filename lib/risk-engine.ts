@@ -664,6 +664,312 @@ export async function computeEntityRisk(
   return result;
 }
 
+// ── Batch Risk Computation (avoids N+1 queries) ──────────────────────────────
+
+interface BatchData {
+  projects: any[];
+  parcels: any[];
+  notifications: any[];
+  documents: any[];
+  families: any[];
+}
+
+/**
+ * Pre-fetch all data needed for risk computation in bulk queries.
+ * Returns lookup maps for O(1) access during risk calculation.
+ */
+async function fetchBatchData(): Promise<{
+  notificationsByProject: Map<string, any[]>;
+  documentsByProject: Map<string, any[]>;
+  familiesByParcel: Map<string, any[]>;
+  parcelStatsByProject: Map<string, { total: number; disputed: number; verif: number; litigated: number }>;
+  familyStatsByProject: Map<string, { total: number; restored: number }>;
+}> {
+  // Single bulk queries instead of per-entity queries
+  const [notifsRes, docsRes, familiesRes, parcelStatsRes, familyStatsRes] = await Promise.all([
+    query<any>(
+      `SELECT DISTINCT ON (project_id, section)
+        project_id, section, notified_on, deadline_on,
+        GREATEST(0, (CURRENT_DATE - notified_on)) AS days_elapsed,
+        GREATEST(1, (deadline_on - notified_on)) AS days_total,
+        (CURRENT_DATE > deadline_on) AS past_deadline
+       FROM notifications
+       ORDER BY project_id, section, created_at DESC`
+    ),
+    query<any>(
+      `SELECT project_id, id, filename, discrepancy_flags
+       FROM documents
+       ORDER BY created_at DESC`
+    ),
+    query<any>(
+      `SELECT parcel_id, id, livelihood_restored, compensation_status
+       FROM affected_families`
+    ),
+    query<any>(
+      `SELECT project_id,
+              COUNT(*)::int AS total,
+              COUNT(*) FILTER (WHERE ownership_status = 'disputed')::int AS disputed,
+              COUNT(*) FILTER (WHERE ownership_status = 'under_verification')::int AS verif,
+              COUNT(*) FILTER (WHERE litigation_flag = true)::int AS litigated
+       FROM parcels
+       GROUP BY project_id`
+    ),
+    query<any>(
+      `SELECT p.project_id,
+              COUNT(*)::int AS total,
+              COUNT(*) FILTER (WHERE af.livelihood_restored = true)::int AS restored
+       FROM affected_families af
+       JOIN parcels p ON p.id = af.parcel_id
+       GROUP BY p.project_id`
+    ),
+  ]);
+
+  // Build lookup maps
+  const notificationsByProject = new Map<string, any[]>();
+  for (const n of notifsRes.rows) {
+    const existing = notificationsByProject.get(n.project_id) || [];
+    existing.push(n);
+    notificationsByProject.set(n.project_id, existing);
+  }
+
+  const documentsByProject = new Map<string, any[]>();
+  for (const d of docsRes.rows) {
+    if (!d.project_id) continue;
+    const existing = documentsByProject.get(d.project_id) || [];
+    existing.push(d);
+    documentsByProject.set(d.project_id, existing);
+  }
+
+  const familiesByParcel = new Map<string, any[]>();
+  for (const f of familiesRes.rows) {
+    const existing = familiesByParcel.get(f.parcel_id) || [];
+    existing.push(f);
+    familiesByParcel.set(f.parcel_id, existing);
+  }
+
+  const parcelStatsByProject = new Map<string, any>();
+  for (const s of parcelStatsRes.rows) {
+    parcelStatsByProject.set(s.project_id, {
+      total: s.total,
+      disputed: s.disputed,
+      verif: s.verif,
+      litigated: s.litigated,
+    });
+  }
+
+  const familyStatsByProject = new Map<string, any>();
+  for (const s of familyStatsRes.rows) {
+    familyStatsByProject.set(s.project_id, {
+      total: s.total,
+      restored: s.restored,
+    });
+  }
+
+  return {
+    notificationsByProject,
+    documentsByProject,
+    familiesByParcel,
+    parcelStatsByProject,
+    familyStatsByProject,
+  };
+}
+
+/**
+ * Batch compute risk scores for all projects and parcels.
+ * Uses pre-fetched data to avoid N+1 queries.
+ * Returns results grouped by entity type.
+ */
+export async function computeBatchRisk(
+  options?: { weights?: Partial<RiskRuleWeights>; persist?: boolean }
+): Promise<{
+  projects: RiskComputationResult[];
+  parcels: RiskComputationResult[];
+}> {
+  const mergedWeights: RiskRuleWeights = {
+    ...DEFAULT_RISK_WEIGHTS,
+    ...(options?.weights || {}),
+  };
+
+  // Fetch all entities and bulk data in parallel
+  const [projectsRes, parcelsRes, batchData] = await Promise.all([
+    query<any>("SELECT * FROM projects"),
+    query<any>("SELECT p.*, pr.name AS project_name, pr.current_stage AS project_stage FROM parcels p LEFT JOIN projects pr ON pr.id = p.project_id"),
+    fetchBatchData(),
+  ]);
+
+  const projectResults: RiskComputationResult[] = [];
+  const parcelResults: RiskComputationResult[] = [];
+
+  // Compute project risks using pre-fetched data
+  for (const project of projectsRes.rows) {
+    const reasons: RiskFactorReason[] = [];
+    const notifs = batchData.notificationsByProject.get(project.id) || [];
+    const docs = batchData.documentsByProject.get(project.id) || [];
+    const parcelStats = batchData.parcelStatsByProject.get(project.id) || { total: 0, disputed: 0, verif: 0, litigated: 0 };
+    const familyStats = batchData.familyStatsByProject.get(project.id) || { total: 0, restored: 0 };
+
+    // Rule 1: Stage Dwell Urgency
+    const wUrgency = mergedWeights.stage_dwell_urgency;
+    if (notifs.length > 0) {
+      const n = notifs[0]; // most urgent notification
+      const pctElapsed = Math.min(200, (Number(n.days_elapsed) / Number(n.days_total)) * 100);
+      const urgency = computeUrgency(pctElapsed, Boolean(n.past_deadline));
+
+      let score = 0;
+      let severity: RiskFactorReason["severity"] = "low";
+      let explanation = "";
+
+      if (urgency === "lapsed") { score = wUrgency; severity = "critical"; explanation = `Statutory deadline for ${n.section} lapsed.`; }
+      else if (urgency === "red") { score = round2(wUrgency * 0.88); severity = "high"; explanation = `Statutory window at ${pctElapsed.toFixed(1)}% elapsed.`; }
+      else if (urgency === "amber") { score = round2(wUrgency * 0.56); severity = "medium"; explanation = `Statutory window at ${pctElapsed.toFixed(1)}% elapsed.`; }
+      else { explanation = `Statutory timeline compliant.`; }
+
+      reasons.push({ factor: "stage_dwell_urgency", label: "Statutory Stage Dwell Urgency", weight: wUrgency, score, maxScore: wUrgency, severity, explanation, details: { urgency, pctElapsed: round2(pctElapsed), section: n.section } });
+    } else {
+      const stageStarted = project.stage_started_at ? new Date(project.stage_started_at) : new Date();
+      const daysDwelled = Math.floor((Date.now() - stageStarted.getTime()) / 86400000);
+      const dwellScore = daysDwelled > 180 ? round2(wUrgency * 0.5) : 0;
+      reasons.push({ factor: "stage_dwell_urgency", label: "Statutory Stage Dwell Urgency", weight: wUrgency, score: dwellScore, maxScore: wUrgency, severity: dwellScore > 0 ? "medium" : "low", explanation: `Stage dwell: ${daysDwelled} days.`, details: { daysDwelled, currentStage: project.current_stage } });
+    }
+
+    // Rule 2: Disputed Ownership
+    const wOwnership = mergedWeights.disputed_ownership;
+    const { total: totalParcels, disputed: disputedCount, verif: verifCount } = parcelStats;
+    const disputeRatio = totalParcels > 0 ? (disputedCount + verifCount * 0.5) / totalParcels : 0;
+    const ownershipScore = clamp(round2(disputeRatio * wOwnership), 0, wOwnership);
+    const ownershipSeverity = disputedCount > 0 ? (disputedCount / totalParcels > 0.3 ? "critical" : "high") : verifCount > 0 ? "medium" : "low";
+    reasons.push({ factor: "disputed_ownership", label: "Title & Ownership Status", weight: wOwnership, score: ownershipScore, maxScore: wOwnership, severity: ownershipSeverity, explanation: `${disputedCount} disputed, ${verifCount} under verification out of ${totalParcels} parcels.`, details: { totalParcels, disputedCount, verifCount } });
+
+    // Rule 3: Litigation
+    const wLitigation = mergedWeights.litigation_flag;
+    const { litigated: litigatedCount } = parcelStats;
+    const litigationScore = totalParcels > 0 ? clamp(round2((litigatedCount / totalParcels) * wLitigation), 0, wLitigation) : 0;
+    reasons.push({ factor: "litigation_flag", label: "Pending Court Litigation", weight: wLitigation, score: litigationScore, maxScore: wLitigation, severity: litigatedCount > 0 ? "high" : "low", explanation: `${litigatedCount} of ${totalParcels} parcels under litigation.`, details: { totalParcels, litigatedCount } });
+
+    // Rule 4: Document Discrepancies
+    const wDoc = mergedWeights.document_discrepancy;
+    let errorCount = 0;
+    let warningCount = 0;
+    for (const doc of docs) {
+      const flags = Array.isArray(doc.discrepancy_flags) ? doc.discrepancy_flags : [];
+      for (const flag of flags) {
+        if (flag.severity === "error") errorCount++;
+        else if (flag.severity === "warning") warningCount++;
+      }
+    }
+    const docScore = clamp(round2(errorCount * 10 + warningCount * 4), 0, wDoc);
+    reasons.push({ factor: "document_discrepancy", label: "Document OCR Discrepancies", weight: wDoc, score: docScore, maxScore: wDoc, severity: errorCount > 0 ? "high" : warningCount > 0 ? "medium" : "low", explanation: `${errorCount} errors, ${warningCount} warnings across ${docs.length} documents.`, details: { errorCount, warningCount, documentsReviewed: docs.length } });
+
+    // Rule 5: R&R Completeness
+    const wRR = mergedWeights.rr_incompleteness;
+    const { total: totalFamilies, restored: restoredFamilies } = familyStats;
+    const pendingFamilies = totalFamilies - restoredFamilies;
+    const incompletenessPct = totalFamilies > 0 ? (pendingFamilies / totalFamilies) * 100 : 0;
+    const rrScore = round2((incompletenessPct / 100) * wRR);
+    reasons.push({ factor: "rr_incompleteness", label: "R&R Resettlement Incompleteness", weight: wRR, score: rrScore, maxScore: wRR, severity: incompletenessPct > 60 ? "high" : incompletenessPct > 0 ? "medium" : "low", explanation: `${pendingFamilies} of ${totalFamilies} families pending.`, details: { totalFamilies, restoredFamilies } });
+
+    const totalScore = clamp(round2(reasons.reduce((sum, r) => sum + r.score, 0)), 0, 100);
+
+    projectResults.push({
+      entityType: "project",
+      entityId: project.id,
+      entityName: project.name,
+      district: project.district,
+      state: project.state,
+      score: totalScore,
+      riskCategory: getRiskCategory(totalScore),
+      reasons,
+      weightsUsed: mergedWeights,
+      computedAt: new Date().toISOString(),
+    });
+  }
+
+  // Compute parcel risks using pre-fetched data
+  for (const parcel of parcelsRes.rows) {
+    const reasons: RiskFactorReason[] = [];
+
+    // Rule 1: Stage Dwell (from associated project)
+    const wUrgency = mergedWeights.stage_dwell_urgency;
+    if (parcel.project_id) {
+      const notifs = batchData.notificationsByProject.get(parcel.project_id) || [];
+      if (notifs.length > 0) {
+        const n = notifs[0];
+        const pctElapsed = Math.min(200, (Number(n.days_elapsed) / Number(n.days_total)) * 100);
+        const urgency = computeUrgency(pctElapsed, Boolean(n.past_deadline));
+        let score = 0; let severity: RiskFactorReason["severity"] = "low"; let explanation = "";
+        if (urgency === "lapsed") { score = wUrgency; severity = "critical"; explanation = `Project deadline lapsed.`; }
+        else if (urgency === "red") { score = round2(wUrgency * 0.88); severity = "high"; explanation = `Project window at ${pctElapsed.toFixed(1)}%.`; }
+        else if (urgency === "amber") { score = round2(wUrgency * 0.55); severity = "medium"; explanation = `Project window at ${pctElapsed.toFixed(1)}%.`; }
+        else { explanation = `Project timeline compliant.`; }
+        reasons.push({ factor: "stage_dwell_urgency", label: "Statutory Stage Dwell Urgency", weight: wUrgency, score, maxScore: wUrgency, severity, explanation, details: { urgency, pctElapsed: round2(pctElapsed), section: n.section } });
+      } else {
+        reasons.push({ factor: "stage_dwell_urgency", label: "Statutory Stage Dwell Urgency", weight: wUrgency, score: 0, maxScore: wUrgency, severity: "low", explanation: "No active notifications.", details: {} });
+      }
+    } else {
+      reasons.push({ factor: "stage_dwell_urgency", label: "Statutory Stage Dwell Urgency", weight: wUrgency, score: 0, maxScore: wUrgency, severity: "low", explanation: "Standalone parcel.", details: {} });
+    }
+
+    // Rule 2: Ownership
+    const wOwnership = mergedWeights.disputed_ownership;
+    const ownershipStatus = (parcel.ownership_status || "clear").toLowerCase();
+    const ownershipScore = ownershipStatus === "disputed" ? wOwnership : ownershipStatus === "under_verification" ? round2(wOwnership * 0.5) : 0;
+    const ownershipSeverity = ownershipStatus === "disputed" ? "critical" : ownershipStatus === "under_verification" ? "medium" : "low";
+    reasons.push({ factor: "disputed_ownership", label: "Title & Ownership Status", weight: wOwnership, score: ownershipScore, maxScore: wOwnership, severity: ownershipSeverity, explanation: `Ownership: ${ownershipStatus}.`, details: { ownershipStatus } });
+
+    // Rule 3: Litigation
+    const wLitigation = mergedWeights.litigation_flag;
+    const isLitigated = Boolean(parcel.litigation_flag);
+    reasons.push({ factor: "litigation_flag", label: "Pending Court Litigation", weight: wLitigation, score: isLitigated ? wLitigation : 0, maxScore: wLitigation, severity: isLitigated ? "critical" : "low", explanation: isLitigated ? "Active litigation." : "No litigation.", details: { litigationFlag: isLitigated } });
+
+    // Rule 4: Document Discrepancies
+    const wDoc = mergedWeights.document_discrepancy;
+    const docs = batchData.documentsByProject.get(parcel.project_id) || [];
+    let errorCount = 0; let warningCount = 0;
+    for (const doc of docs) {
+      const flags = Array.isArray(doc.discrepancy_flags) ? doc.discrepancy_flags : [];
+      for (const flag of flags) { if (flag.severity === "error") errorCount++; else if (flag.severity === "warning") warningCount++; }
+    }
+    const docScore = clamp(round2(errorCount * 10 + warningCount * 4), 0, wDoc);
+    reasons.push({ factor: "document_discrepancy", label: "Document OCR Discrepancies", weight: wDoc, score: docScore, maxScore: wDoc, severity: errorCount > 0 ? "high" : warningCount > 0 ? "medium" : "low", explanation: `${errorCount} errors, ${warningCount} warnings.`, details: { errorCount, warningCount } });
+
+    // Rule 5: R&R
+    const wRR = mergedWeights.rr_incompleteness;
+    const fams = batchData.familiesByParcel.get(parcel.id) || [];
+    const totalFams = fams.length;
+    const restoredFams = fams.filter((f: any) => f.livelihood_restored).length;
+    const pendingFams = totalFams - restoredFams;
+    const rrPct = totalFams > 0 ? (pendingFams / totalFams) * 100 : 0;
+    const rrScore = round2((rrPct / 100) * wRR);
+    reasons.push({ factor: "rr_incompleteness", label: "R&R Resettlement Incompleteness", weight: wRR, score: rrScore, maxScore: wRR, severity: rrPct > 60 ? "high" : rrPct > 0 ? "medium" : "low", explanation: `${pendingFams}/${totalFams} families pending.`, details: { totalFamilies: totalFams, restoredFamilies: restoredFams } });
+
+    const totalScore = clamp(round2(reasons.reduce((sum, r) => sum + r.score, 0)), 0, 100);
+
+    parcelResults.push({
+      entityType: "parcel",
+      entityId: parcel.id,
+      entityName: parcel.ulpin ? `ULPIN: ${parcel.ulpin}` : `Survey ${parcel.survey_number || "N/A"}`,
+      district: parcel.district,
+      state: parcel.state,
+      score: totalScore,
+      riskCategory: getRiskCategory(totalScore),
+      reasons,
+      weightsUsed: mergedWeights,
+      computedAt: new Date().toISOString(),
+    });
+  }
+
+  // Persist all results if requested
+  if (options?.persist !== false) {
+    const { saveRiskScore } = await import("@/lib/db/queries/risk-scores");
+    const allResults = [...projectResults, ...parcelResults];
+    await Promise.all(
+      allResults.map((r) => saveRiskScore(r.entityType, r.entityId, r.score, r.reasons))
+    );
+  }
+
+  return { projects: projectResults, parcels: parcelResults };
+}
+
 /**
  * Pure simulation function: calculates the re-weighted score on the client or server
  * using existing raw factor scores without re-querying the database.

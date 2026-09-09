@@ -12,7 +12,7 @@
 import { useState } from "react";
 import dynamic from "next/dynamic";
 import useSWR from "swr";
-import { Shield, MapPin, Building2, Plug, Loader2, CheckCircle2, AlertTriangle, RefreshCw } from "lucide-react";
+import { Shield, MapPin, Building2, Plug, Loader2, CheckCircle2, AlertTriangle, RefreshCw, Dice5 } from "lucide-react";
 import type { Polygon, MultiPolygon } from "geojson";
 
 const MiniMapPolygon = dynamic(() => import("@/components/map/MiniMapPolygon"), {
@@ -43,19 +43,66 @@ const MOCK_ADAPTERS = [
   { key: "pfms",       label: "PFMS",        color: "bg-amber-600",  desc: "Public Financial Management System (disbursement)" },
 ] as const;
 
+// ── ULPIN Auto-Generation ──────────────────────────────────────────────────
+// Format: SSDD (state 2 + district 2) + 10 random digits = 14 digits total
+// Indian state codes (Census 2011)
+
+const STATE_CODES: Record<string, string> = {
+  "Andhra Pradesh": "28", "Arunachal Pradesh": "12", "Assam": "18",
+  "Bihar": "10", "Chhattisgarh": "22", "Goa": "30", "Gujarat": "24",
+  "Haryana": "06", "Himachal Pradesh": "02", "Jharkhand": "20",
+  "Karnataka": "29", "Kerala": "32", "Madhya Pradesh": "23",
+  "Maharashtra": "27", "Manipur": "14", "Meghalaya": "17",
+  "Mizoram": "15", "Nagaland": "13", "Odisha": "21",
+  "Punjab": "03", "Rajasthan": "08", "Sikkim": "11",
+  "Tamil Nadu": "33", "Telangana": "36", "Tripura": "16",
+  "Uttar Pradesh": "09", "Uttarakhand": "05", "West Bengal": "19",
+  "Delhi": "07", "Jammu and Kashmir": "01", "Ladakh": "38",
+  "Chandigarh": "04", "Puducherry": "34", "Andaman and Nicobar Islands": "35",
+  "Dadra and Nagar Haveli": "26", "Lakshadweep": "31",
+};
+
+function generateUlpin(state: string, district: string): string {
+  const stateCode = STATE_CODES[state] || String(Math.floor(Math.random() * 90) + 10);
+  const districtHash = district
+    ? String(district.charCodeAt(0) % 10).padStart(1, "0") +
+      String(district.length % 10)
+    : String(Math.floor(Math.random() * 90) + 10);
+  const randomPart = Array.from({ length: 10 }, () => Math.floor(Math.random() * 10)).join("");
+  return (stateCode + districtHash + randomPart).slice(0, 14);
+}
+
 // ── Parcel Form ─────────────────────────────────────────────────────────────
 
 function AddParcelForm() {
-  const [geom, setGeom] = useState<Polygon | MultiPolygon | null>(null);
+  const [geom, setGeom] = useState<Polygon | null>(null);
   const [form, setForm] = useState({
-    ulpin: "", survey_number: "", village: "", district: "", state: "",
+    project_id: "", ulpin: "", survey_number: "", village: "", district: "", state: "",
     area_hectares: "", land_type: "agricultural", ownership_status: "clear",
   });
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState<{ ok: boolean; message: string } | null>(null);
 
+  // Fetch projects for the selector
+  const { data: projectsData } = useSWR<{ data: { id: string; name: string; district: string; state: string }[] }>(
+    "/api/projects?limit=200",
+    (url: string) => fetch(url).then((r) => r.json())
+  );
+  const projects = projectsData?.data ?? [];
+
   function handleField(field: string, value: string) {
-    setForm((f) => ({ ...f, [field]: value }));
+    setForm((f) => {
+      const next = { ...f, [field]: value };
+      // Auto-fill state/district from selected project
+      if (field === "project_id" && value) {
+        const proj = projects.find((p) => p.id === value);
+        if (proj) {
+          next.district = proj.district;
+          next.state = proj.state;
+        }
+      }
+      return next;
+    });
     setResult(null);
   }
 
@@ -71,6 +118,7 @@ function AddParcelForm() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ulpin: form.ulpin.trim(),
+          project_id: form.project_id || undefined,
           survey_number: form.survey_number || undefined,
           village: form.village || undefined,
           district: form.district || undefined,
@@ -104,7 +152,7 @@ function AddParcelForm() {
       }
 
       setResult({ ok: true, message: `Parcel ${form.ulpin} created — ID: ${data.data?.id}${riskMsg}` });
-      setForm({ ulpin: "", survey_number: "", village: "", district: "", state: "", area_hectares: "", land_type: "agricultural", ownership_status: "clear" });
+      setForm({ project_id: "", ulpin: "", survey_number: "", village: "", district: "", state: "", area_hectares: "", land_type: "agricultural", ownership_status: "clear" });
       setGeom(null);
     } catch (err) {
       setResult({ ok: false, message: (err as Error).message });
@@ -118,25 +166,66 @@ function AddParcelForm() {
       {/* Left: field inputs */}
       <div className="flex flex-col gap-4">
         <h2 className="font-semibold text-gray-700">Parcel Details</h2>
+
+        {/* Project selector */}
+        <div>
+          <label className="text-xs font-medium text-gray-600 mb-1 block">
+            Link to Project <span className="text-gray-400">(optional)</span>
+          </label>
+          <select
+            value={form.project_id}
+            onChange={(e) => handleField("project_id", e.target.value)}
+            className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400"
+          >
+            <option value="">— No project (standalone parcel) —</option>
+            {projects.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.name} ({p.district}, {p.state})
+              </option>
+            ))}
+          </select>
+          {form.project_id && (
+            <p className="text-[10px] text-green-600 mt-1">
+              ✓ State & district auto-filled from project. Parcel will appear in project&apos;s atlas view.
+            </p>
+          )}
+        </div>
+
         {[
-          { label: "ULPIN (14-digit)", field: "ulpin", placeholder: "e.g. 27010100012345", required: true },
+          { label: "ULPIN (14-digit)", field: "ulpin", placeholder: "e.g. 27010100012345", required: true, autoGen: true },
           { label: "Survey Number", field: "survey_number", placeholder: "e.g. 45/2A" },
           { label: "Village", field: "village", placeholder: "e.g. Bhimashankar" },
           { label: "District", field: "district", placeholder: "e.g. Pune" },
           { label: "State", field: "state", placeholder: "e.g. Maharashtra" },
           { label: "Area (hectares)", field: "area_hectares", placeholder: "e.g. 2.45" },
-        ].map(({ label, field, placeholder, required }) => (
+        ].map(({ label, field, placeholder, required, autoGen }) => (
           <div key={field}>
             <label className="text-xs font-medium text-gray-600 mb-1 block">
               {label} {required && <span className="text-red-500">*</span>}
             </label>
-            <input
-              type="text"
-              placeholder={placeholder}
-              value={form[field as keyof typeof form]}
-              onChange={(e) => handleField(field, e.target.value)}
-              className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400"
-            />
+            <div className="flex gap-1.5">
+              <input
+                type="text"
+                placeholder={placeholder}
+                value={form[field as keyof typeof form]}
+                onChange={(e) => handleField(field, e.target.value)}
+                className="flex-1 px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400"
+              />
+              {autoGen && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    const ulpin = generateUlpin(form.state, form.district);
+                    handleField("ulpin", ulpin);
+                  }}
+                  title="Auto-generate ULPIN from state + district"
+                  className="px-2 py-2 bg-indigo-100 text-indigo-700 rounded-lg hover:bg-indigo-200 transition-colors flex items-center gap-1 text-xs font-medium shrink-0"
+                >
+                  <Dice5 className="h-3.5 w-3.5" />
+                  Generate
+                </button>
+              )}
+            </div>
           </div>
         ))}
 
@@ -208,7 +297,7 @@ function AddParcelForm() {
 // ── Project Form ────────────────────────────────────────────────────────────
 
 function AddProjectForm() {
-  const [geom, setGeom] = useState<Polygon | MultiPolygon | null>(null);
+  const [geom, setGeom] = useState<Polygon | null>(null);
   const [form, setForm] = useState({
     name: "", land_requiring_body: "", ministry: "", state: "", district: "",
     project_type: "highway",

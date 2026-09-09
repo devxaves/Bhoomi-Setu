@@ -8,6 +8,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import {
   listParcels,
+  listParcelsForMap,
   getParcelByUlpin,
   createParcel,
   type CreateParcelInput,
@@ -23,28 +24,42 @@ export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
 
-    // ULPIN direct lookup
+    // ULPIN direct lookup (returns full parcel with geometry)
     const ulpin = searchParams.get('ulpin');
     if (ulpin) {
       const parcel = await getParcelByUlpin(ulpin.trim());
       if (!parcel) {
-        return NextResponse.json({ error: 'Parcel not found for ULPIN: ' + ulpin }, { status: 404 });
+        return NextResponse.json({ error: 'Parcel not found' }, { status: 404 });
       }
       return NextResponse.json({ data: parcel });
     }
 
-    // Filtered list
-    const project_id       = searchParams.get('project_id')       ?? undefined;
-    const district         = searchParams.get('district')         ?? undefined;
-    const state            = searchParams.get('state')            ?? undefined;
-    const ownership_status = searchParams.get('ownership_status') ?? undefined;
+    const project_id = searchParams.get('project_id') ?? undefined;
+    const district   = searchParams.get('district')   ?? undefined;
+    const state      = searchParams.get('state')      ?? undefined;
 
-    const parcels = await listParcels({ project_id, district, state, ownership_status });
-    return NextResponse.json({ data: parcels, count: parcels.length });
+    // Map mode: returns parcels WITH geometry for polygon rendering on the map
+    const geometryMode = searchParams.get('geometry') === 'true';
+    if (geometryMode) {
+      const parcels = await listParcelsForMap({ project_id, district, state });
+      return NextResponse.json({ data: parcels, count: parcels.length });
+    }
+
+    // Filtered list with pagination (returns lightweight summaries without geometry)
+    const ownership_status = searchParams.get('ownership_status') ?? undefined;
+    const page             = searchParams.get('page')             ? parseInt(searchParams.get('page')!, 10) : undefined;
+    const limit            = searchParams.get('limit')            ? parseInt(searchParams.get('limit')!, 10) : undefined;
+
+    const result = await listParcels(
+      { project_id, district, state, ownership_status },
+      { page, limit }
+    );
+
+    return NextResponse.json(result);
   } catch (err) {
     console.error('GET /api/parcels error:', err);
     return NextResponse.json(
-      { error: 'Failed to fetch parcels', details: (err as Error).message },
+      { error: 'Failed to fetch parcels' },
       { status: 500 }
     );
   }
@@ -72,12 +87,11 @@ export async function POST(req: NextRequest) {
   } catch (err) {
     console.error('POST /api/parcels error:', err);
     const msg = (err as Error).message;
-    // ULPIN uniqueness violation
     if (msg.includes('parcels_ulpin_key') || msg.includes('unique')) {
       return NextResponse.json({ error: 'A parcel with this ULPIN already exists' }, { status: 409 });
     }
     return NextResponse.json(
-      { error: 'Failed to create parcel', details: msg },
+      { error: 'Failed to create parcel' },
       { status: 500 }
     );
   }

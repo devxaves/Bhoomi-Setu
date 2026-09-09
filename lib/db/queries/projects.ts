@@ -43,17 +43,65 @@ export const VALID_STAGES = [
 export type ProjectStage = typeof VALID_STAGES[number];
 
 // ============================================================
+// Pagination types
+// ============================================================
+
+export interface PaginationParams {
+  page?: number;    // 1-indexed, default 1
+  limit?: number;   // default 50, max 200
+}
+
+export interface PaginatedResult<T> {
+  data: T[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+    hasNext: boolean;
+    hasPrev: boolean;
+  };
+}
+
+/** Lightweight project summary for list views (excludes heavy alignment_geojson) */
+export interface ProjectSummary {
+  id: string;
+  name: string;
+  land_requiring_body: string;
+  ministry: string | null;
+  state: string;
+  district: string;
+  project_type: string | null;
+  current_stage: string;
+  stage_started_at: string;
+  status_flag: string;
+  risk_score: number;
+  parcel_count: number;
+  ulpins: string[];
+  created_at: string;
+  updated_at: string;
+}
+
+// ============================================================
 // Queries
 // ============================================================
 
-/** List all projects, optionally filtered by state/district */
-export async function listProjects(filters?: {
-  state?: string;
-  district?: string;
-  status_flag?: string;
-}): Promise<Project[]> {
+function resolvePagination(params?: PaginationParams): { page: number; limit: number; offset: number } {
+  const page = Math.max(1, params?.page ?? 1);
+  const limit = Math.min(200, Math.max(1, params?.limit ?? 50));
+  const offset = (page - 1) * limit;
+  return { page, limit, offset };
+}
+
+/** List projects with pagination, optionally filtered by state/district/status/search */
+export async function listProjects(
+  filters?: { state?: string; district?: string; status_flag?: string; search?: string },
+  pagination?: PaginationParams
+): Promise<PaginatedResult<ProjectSummary>> {
+  const { page, limit, offset } = resolvePagination(pagination);
+
   const conditions: string[] = [];
-  const params: (string)[] = [];
+  const params: (string | number)[] = [];
   let paramIndex = 1;
 
   if (filters?.state) {
@@ -68,12 +116,54 @@ export async function listProjects(filters?: {
     conditions.push(`status_flag = $${paramIndex++}`);
     params.push(filters.status_flag);
   }
+  if (filters?.search) {
+    conditions.push(`(LOWER(name) LIKE $${paramIndex} OR LOWER(district) LIKE $${paramIndex} OR LOWER(land_requiring_body) LIKE $${paramIndex})`);
+    params.push(`%${filters.search.toLowerCase()}%`);
+    paramIndex++;
+  }
 
   const where = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
-  const sql = `SELECT * FROM projects ${where} ORDER BY updated_at DESC`;
 
-  const { rows } = await query<Project>(sql, params);
-  return rows;
+  // Count total
+  const countResult = await query<{ count: string }>(
+    `SELECT COUNT(*)::text AS count FROM projects ${where}`,
+    params
+  );
+  const total = parseInt(countResult.rows[0].count, 10);
+
+  // Fetch page with parcel count and ULPINs
+  const dataParams = [...params, limit, offset];
+  const { rows } = await query<{ id: string; name: string; land_requiring_body: string; ministry: string | null; state: string; district: string; project_type: string | null; current_stage: string; stage_started_at: string; status_flag: string; risk_score: number; parcel_count: number; ulpins: string[]; created_at: string; updated_at: string }>(
+    `SELECT p.id, p.name, p.land_requiring_body, p.ministry, p.state, p.district,
+            p.project_type, p.current_stage, p.stage_started_at, p.status_flag,
+            p.risk_score, p.created_at, p.updated_at,
+            COALESCE(pc.parcel_count, 0)::int AS parcel_count,
+            COALESCE(pc.ulpins, '{}') AS ulpins
+     FROM projects p
+     LEFT JOIN LATERAL (
+       SELECT COUNT(*)::int AS parcel_count,
+              ARRAY_AGG(ulpin) FILTER (WHERE ulpin IS NOT NULL) AS ulpins
+       FROM parcels WHERE project_id = p.id
+     ) pc ON true
+     ${where}
+     ORDER BY p.updated_at DESC
+     LIMIT $${paramIndex++} OFFSET $${paramIndex++}`,
+    dataParams
+  );
+
+  const totalPages = Math.ceil(total / limit);
+
+  return {
+    data: rows,
+    pagination: {
+      page,
+      limit,
+      total,
+      totalPages,
+      hasNext: page < totalPages,
+      hasPrev: page > 1,
+    },
+  };
 }
 
 /** Get a single project by ID */
