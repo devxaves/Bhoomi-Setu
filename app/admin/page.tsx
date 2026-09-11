@@ -477,9 +477,8 @@ function MockAdaptersPanel() {
         })}
       </div>
 
-      <div className="text-xs text-gray-400 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2">
-        💡 Tip: Mock adapters log every call to <code className="bg-amber-100 rounded px-1 font-bold">mock_adapter_log</code> in the database. 
-        This demonstrates a federated-integration architecture for the SIH evaluators.
+      <div className="text-xs text-slate-600 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+        💡 Federated Integration: Mock adapters log every call to <code className="bg-amber-100 rounded px-1 font-bold">mock_adapter_log</code> in the database to audit inter-departmental data exchange across DILRMP, LACRRIS, BhoomiRashi, and PFMS.
       </div>
 
       {/* Live Mock Adapter Log Table */}

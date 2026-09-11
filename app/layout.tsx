@@ -5,21 +5,31 @@ import { GeistMono } from "geist/font/mono"
 import "./globals.css"
 import "@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css"
 import { AuthProvider } from "@/components/AuthProvider"
+import { LanguageProvider } from "@/components/LanguageProvider"
 import NavBar from "@/components/NavBar"
+import BhoomiChatbot from "@/components/BhoomiChatbot"
 import { Suspense } from "react"
 
 export const metadata: Metadata = {
-  title: "BhoomiSetu — National Land Acquisition Control & Compliance Platform",
+  title: "BhoomiSetu — National Land Acquisition Control & Compliance Portal",
   description:
-    "Real-time RFCTLARR Act compliance tracking, GIS-based parcel mapping, statutory deadline monitoring, and risk-scored decision support for India's land acquisition lifecycle. SIH 2025 Problem Statement 26016.",
+    "Integrated GIS-native platform for RFCTLARR Act 2013 statutory compliance, 14-digit ULPIN parcel mapping, statutory deadline monitoring, and transparent land acquisition management across India. Department of Land Resources (DoLR), Ministry of Rural Development, Government of India.",
+  icons: {
+    icon: "/icon.svg",
+    shortcut: "/favicon.svg",
+    apple: "/icon.svg",
+  },
   keywords: [
     "land acquisition",
-    "RFCTLARR",
+    "RFCTLARR Act 2013",
     "ULPIN",
     "BhoomiSetu",
-    "Smart India Hackathon",
-    "GIS",
-    "land records",
+    "GIS Cadastral Map",
+    "Land Records",
+    "DoLR",
+    "Ministry of Rural Development",
+    "PM GatiShakti",
+    "Digital India",
   ],
 }
 
@@ -29,28 +39,38 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body
         className={`font-sans ${GeistSans.variable} ${GeistMono.variable} min-h-dvh bg-background text-foreground antialiased`}
       >
-        <AuthProvider>
-          <Suspense
-            fallback={
-              <div className="flex items-center justify-center min-h-screen">
-                <div className="animate-pulse text-lg text-muted-foreground">Loading BhoomiSetu...</div>
-              </div>
-            }
-          >
-            <NavBar />
-            <main className="min-h-[calc(100vh-56px)] bg-gray-50/80">{children}</main>
+        <LanguageProvider>
+          <AuthProvider>
+            <Suspense
+              fallback={
+                <div className="flex items-center justify-center min-h-screen">
+                  <div className="animate-pulse text-lg text-muted-foreground">Loading BhoomiSetu Portal...</div>
+                </div>
+              }
+            >
+              <NavBar />
+              <main className="min-h-[calc(100vh-56px)] bg-gray-50/80">{children}</main>
+              <BhoomiChatbot />
 
-            <footer className="border-t bg-white py-4 text-center text-xs text-muted-foreground">
-              <div className="mx-auto max-w-7xl px-4">
-                BhoomiSetu — National Land Acquisition Control & Compliance Platform
-                <span className="mx-2">·</span>
-                SIH 2025 · PS 26016
-                <span className="mx-2">·</span>
-                Dept. of Land Resources, Ministry of Rural Development
-              </div>
-            </footer>
-          </Suspense>
-        </AuthProvider>
+              <footer className="border-t border-slate-200 bg-white py-4 text-center">
+                <div className="mx-auto max-w-7xl px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-500">
+                  <div className="flex items-center gap-2">
+                    <span className="font-black text-slate-800">भूमि सेतु</span>
+                    <span className="text-slate-300">·</span>
+                    <span>National Land Acquisition & Compliance Portal</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 text-slate-400">
+                    <span>Dept. of Land Resources</span>
+                    <span className="text-slate-300">·</span>
+                    <span>Ministry of Rural Development</span>
+                    <span className="text-slate-300">·</span>
+                    <span className="font-semibold text-slate-500">Government of India</span>
+                  </div>
+                </div>
+              </footer>
+            </Suspense>
+          </AuthProvider>
+        </LanguageProvider>
       </body>
     </html>
   )

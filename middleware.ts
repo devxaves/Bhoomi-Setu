@@ -20,6 +20,10 @@ const PUBLIC_ROUTES = [
   "/api/health",
   "/api/citizen",
   "/api/cron",
+  "/api/chat",
+  "/api/translate",
+  "/docs",
+  "/docs.html",
 ];
 
 // Admin-only routes

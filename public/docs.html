@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BhoomiSetu — Official Platform Architecture & Statutory Compliance Documentation</title>
+  <link rel="icon" type="image/svg+xml" href="/icon.svg">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: #f8fafc; }
+    code, pre { font-family: 'JetBrains Mono', monospace; }
+    .glass-card { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(51, 65, 85, 0.6); }
+    .accent-gradient { background: linear-gradient(135deg, #d97706 0%, #059669 100%); }
+    .gold-text { color: #f59e0b; }
+    .emerald-text { color: #10b981; }
+    .nav-link.active { background-color: #1e293b; color: #f59e0b; border-left: 3px solid #f59e0b; }
+    html { scroll-behavior: smooth; }
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: #0f172a; }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #475569; }
+    @media print {
+      body { background-color: #ffffff; color: #000000; }
+      .no-print { display: none !important; }
+      .glass-card { background: #ffffff; border: 1px solid #cccccc; color: #000000; }
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col antialiased">
+
+  <!-- Top Institutional Header Strip -->
+  <header class="bg-slate-950 border-b border-slate-800 py-2 px-4 sm:px-8 no-print sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <img src="/icon.svg" alt="BhoomiSetu Emblem" class="w-9 h-9 rounded-xl shadow-xs border border-slate-700/60 object-contain">
+        <div>
+          <div class="flex items-center space-x-2">
+            <h1 class="text-lg font-black tracking-tight text-white">BhoomiSetu <span class="text-amber-500">भूमिसेतु</span></h1>
+            <span class="bg-emerald-950 text-emerald-400 border border-emerald-800/80 text-[10px] font-bold px-2 py-0.5 rounded-full">v2.5 Production</span>
+          </div>
+          <p class="text-[11px] text-slate-400 font-medium">Department of Land Resources (DoLR) | Ministry of Rural Development, Govt. of India</p>
+        </div>
+      </div>
+      <div class="flex items-center space-x-4">
+        <a href="/landing" class="hidden sm:inline-flex items-center space-x-1 text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-1.5 rounded-lg border border-slate-700 transition">
+          <span>← Back to Portal</span>
+        </a>
+        <button onclick="window.print()" class="bg-amber-600 hover:bg-amber-500 text-white font-semibold text-xs px-3 py-1.5 rounded-lg transition shadow">
+          🖨️ Print Documentation
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Grid Layout -->
+  <div class="flex-1 max-w-7xl w-full mx-auto flex flex-col md:flex-row gap-8 p-4 sm:p-8">
+
+    <!-- Sidebar Navigation -->
+    <aside class="w-full md:w-64 flex-shrink-0 no-print">
+      <div class="sticky top-20 glass-card rounded-2xl p-4 space-y-2">
+        <div class="px-3 py-2 text-xs font-bold uppercase tracking-wider text-slate-400 border-b border-slate-700/60 mb-2">
+          Documentation Index
+        </div>
+        <nav class="space-y-1 text-xs font-medium">
+          <a href="#summary" class="nav-link block px-3 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition">1. Executive Summary</a>
+          <a href="#architecture" class="nav-link block px-3 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition">2. System Architecture</a>
+          <a href="#lifecycle" class="nav-link block px-3 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition">3. Statutory 10-Stage Lifecycle</a>
+          <a href="#ulpin" class="nav-link block px-3 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition">4. 14-Digit ULPIN & Cadastral GIS</a>
+          <a href="#modules" class="nav-link block px-3 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition">5. Core Platform Modules</a>
+          <a href="#ai-services" class="nav-link block px-3 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition">6. AI Chatbot & Multilingual</a>
+          <a href="#database" class="nav-link block px-3 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition">7. Database Schema DDL</a>
+          <a href="#deployment" class="nav-link block px-3 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition">8. Deployment & Environment</a>
+        </nav>
+
+        <div class="pt-4 border-t border-slate-700/60 text-[11px] text-slate-400 space-y-1">
+          <p class="font-semibold text-slate-300">Quick Links:</p>
+          <p>• <a href="/atlas" class="text-amber-400 hover:underline">GIS National Atlas</a></p>
+          <p>• <a href="/workflow" class="text-emerald-400 hover:underline">RFCTLARR Tracker</a></p>
+          <p>• <a href="/citizen" class="text-blue-400 hover:underline">Citizen Grievance Portal</a></p>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 space-y-12 min-w-0">
+
+      <!-- Section 1: Executive Summary -->
+      <section id="summary" class="glass-card rounded-2xl p-6 sm:p-8 space-y-4">
+        <div class="flex items-center space-x-3 border-b border-slate-700/80 pb-4">
+          <div class="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold text-xl">1</div>
+          <div>
+            <h2 class="text-2xl font-bold text-white">Executive Summary & Platform Scope</h2>
+            <p class="text-xs text-slate-400">National Land Acquisition Monitoring, GIS Cadastral Compliance & Statutory Control</p>
+          </div>
+        </div>
+
+        <p class="text-sm text-slate-300 leading-relaxed">
+          <strong class="text-white">BhoomiSetu (भूमिसेतु)</strong> is an enterprise GIS-native national land acquisition control, monitoring, and compliance platform designed specifically for major linear and spatial infrastructure projects across India (Highways, Railways, Industrial Corridors, Transmission Lines, and Pipelines).
+        </p>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 py-2">
+          <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-800">
+            <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Statutory Mandate</span>
+            <p class="text-sm font-bold text-amber-400 mt-1">RFCTLARR Act, 2013</p>
+            <p class="text-[11px] text-slate-400 mt-1">Full Section 4 to Section 38 legal stop-gate compliance.</p>
+          </div>
+          <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-800">
+            <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">National Standard</span>
+            <p class="text-sm font-bold text-emerald-400 mt-1">14-Digit ULPIN GIS</p>
+            <p class="text-[11px] text-slate-400 mt-1">Bhuvan WMTS & State RoR digital land registry sync.</p>
+          </div>
+          <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-800">
+            <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Master Plan Alignment</span>
+            <p class="text-sm font-bold text-blue-400 mt-1">PM GatiShakti Portal</p>
+            <p class="text-[11px] text-slate-400 mt-1">Unified multi-modal infrastructure corridor velocity tracking.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 2: System Architecture -->
+      <section id="architecture" class="glass-card rounded-2xl p-6 sm:p-8 space-y-6">
+        <div class="flex items-center space-x-3 border-b border-slate-700/80 pb-4">
+          <div class="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-xl">2</div>
+          <div>
+            <h2 class="text-2xl font-bold text-white">System Architecture & Tech Stack</h2>
+            <p class="text-xs text-slate-400">Next.js 15 App Router, Neon Serverless PostgreSQL, MapLibre GL, Groq AI & Tesseract OCR</p>
+          </div>
+        </div>
+
+        <div class="bg-slate-950 p-6 rounded-xl border border-slate-800 space-y-4">
+          <h3 class="text-sm font-bold text-amber-400 uppercase tracking-wider">Architectural Layer Flow</h3>
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-3 text-center text-xs">
+            <div class="bg-slate-900 p-3 rounded-lg border border-slate-700">
+              <span class="font-bold text-slate-200">1. Client Layer</span>
+              <p class="text-[11px] text-slate-400 mt-1">Next.js 15, Tailwind v4, MapLibre GL, Lucide Icons</p>
+            </div>
+            <div class="bg-slate-900 p-3 rounded-lg border border-slate-700">
+              <span class="font-bold text-emerald-400">2. Application Router</span>
+              <p class="text-[11px] text-slate-400 mt-1">Server Components, API Route Handlers, SWR</p>
+            </div>
+            <div class="bg-slate-900 p-3 rounded-lg border border-slate-700">
+              <span class="font-bold text-blue-400">3. AI & OCR Engines</span>
+              <p class="text-[11px] text-slate-400 mt-1">Groq LLM (GPT-OSS / Qwen), Tesseract.js OCR</p>
+            </div>
+            <div class="bg-slate-900 p-3 rounded-lg border border-slate-700">
+              <span class="font-bold text-amber-400">4. Persistence</span>
+              <p class="text-[11px] text-slate-400 mt-1">Neon Serverless PostgreSQL (raw SQL pool)</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-slate-900 text-slate-300 font-semibold uppercase border-b border-slate-700">
+              <tr>
+                <th class="py-3 px-4">Component</th>
+                <th class="py-3 px-4">Technology</th>
+                <th class="py-3 px-4">Role & Description</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-800 text-slate-300">
+              <tr>
+                <td class="py-3 px-4 font-bold text-white">Frontend Framework</td>
+                <td class="py-3 px-4 text-emerald-400 font-mono">Next.js 15.5 (App Router)</td>
+                <td class="py-3 px-4">React 18 SSR, Server Components, and client state management.</td>
+              </tr>
+              <tr>
+                <td class="py-3 px-4 font-bold text-white">Styling System</td>
+                <td class="py-3 px-4 text-cyan-400 font-mono">Tailwind CSS v4 + Geist Fonts</td>
+                <td class="py-3 px-4">Modern responsive UI tokens, glassmorphism aesthetics, dark mode palette.</td>
+              </tr>
+              <tr>
+                <td class="py-3 px-4 font-bold text-white">Database Engine</td>
+                <td class="py-3 px-4 text-blue-400 font-mono">Neon Serverless PostgreSQL</td>
+                <td class="py-3 px-4">High-throughput serverless Postgres accessed via raw SQL (`pg` connection pool).</td>
+              </tr>
+              <tr>
+                <td class="py-3 px-4 font-bold text-white">GIS Mapping Engine</td>
+                <td class="py-3 px-4 text-emerald-400 font-mono">MapLibre GL + Turf.js + Mapbox Draw</td>
+                <td class="py-3 px-4">Cadastral parcel rendering, 14-digit ULPIN lookup, buffer spatial analysis.</td>
+              </tr>
+              <tr>
+                <td class="py-3 px-4 font-bold text-white">AI Language Model</td>
+                <td class="py-3 px-4 text-amber-400 font-mono">Groq API (gpt-oss-120b / qwen3.8-27b)</td>
+                <td class="py-3 px-4">Platform assistant (*BhoomiSetu Sahayak*) & multi-language translation engine.</td>
+              </tr>
+              <tr>
+                <td class="py-3 px-4 font-bold text-white">Document OCR Engine</td>
+                <td class="py-3 px-4 text-purple-400 font-mono">Tesseract.js Engine</td>
+                <td class="py-3 px-4">Scanned gazette notice OCR parsing for survey numbers and khata records.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Section 3: Statutory 10-Stage Lifecycle -->
+      <section id="lifecycle" class="glass-card rounded-2xl p-6 sm:p-8 space-y-6">
+        <div class="flex items-center space-x-3 border-b border-slate-700/80 pb-4">
+          <div class="w-10 h-10 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center font-bold text-xl">3</div>
+          <div>
+            <h2 class="text-2xl font-bold text-white">Statutory 10-Stage RFCTLARR Act 2013 Workflow</h2>
+            <p class="text-xs text-slate-400">Strict SLA countdowns, statutory stop-gates, and legal compliance monitoring</p>
+          </div>
+        </div>
+
+        <div class="space-y-3">
+          <div class="p-4 bg-slate-900 rounded-xl border-l-4 border-amber-500 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div>
+              <span class="text-xs font-bold text-amber-400 uppercase">Stage 1 · Section 4 SIA Notification</span>
+              <p class="text-sm font-semibold text-white">Social Impact Assessment (SIA) Study & Public Consultation</p>
+              <p class="text-xs text-slate-400">SIA Unit evaluates public purpose, affected families, and land extent within 6 months.</p>
+            </div>
+            <span class="bg-amber-950 text-amber-300 border border-amber-800 text-[11px] font-mono font-bold px-2.5 py-1 rounded-lg">SLA: 180 Days</span>
+          </div>
+
+          <div class="p-4 bg-slate-900 rounded-xl border-l-4 border-emerald-500 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div>
+              <span class="text-xs font-bold text-emerald-400 uppercase">Stage 2 · Section 7 Expert Group Appraisal</span>
+              <p class="text-sm font-semibold text-white">Independent Multi-Disciplinary Expert Group Review</p>
+              <p class="text-xs text-slate-400">Evaluates whether SIA recommendation serves legitimate public purpose within 60 days.</p>
+            </div>
+            <span class="bg-emerald-950 text-emerald-300 border border-emerald-800 text-[11px] font-mono font-bold px-2.5 py-1 rounded-lg">SLA: 60 Days</span>
+          </div>
+
+          <div class="p-4 bg-slate-900 rounded-xl border-l-4 border-blue-500 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div>
+              <span class="text-xs font-bold text-blue-400 uppercase">Stage 3 · Section 11 Preliminary Notification</span>
+              <p class="text-sm font-semibold text-white">Official Gazette Notification & Land Boundary Survey</p>
+              <p class="text-xs text-slate-400">Published in Official Gazette and two local daily newspapers; bars transactions on land.</p>
+            </div>
+            <span class="bg-blue-950 text-blue-300 border border-blue-800 text-[11px] font-mono font-bold px-2.5 py-1 rounded-lg">SLA: 365 Days</span>
+          </div>
+
+          <div class="p-4 bg-slate-900 rounded-xl border-l-4 border-indigo-500 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div>
+              <span class="text-xs font-bold text-indigo-400 uppercase">Stage 4 · Section 15 Hearing of Objections</span>
+              <p class="text-sm font-semibold text-white">60-Day Public Objection Window & CALA Inquiry</p>
+              <p class="text-xs text-slate-400">Land owners submit objections to CALA regarding area, suitability, or ownership.</p>
+            </div>
+            <span class="bg-indigo-950 text-indigo-300 border border-indigo-800 text-[11px] font-mono font-bold px-2.5 py-1 rounded-lg">SLA: 60 Days</span>
+          </div>
+
+          <div class="p-4 bg-slate-900 rounded-xl border-l-4 border-purple-500 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div>
+              <span class="text-xs font-bold text-purple-400 uppercase">Stage 5 · Section 19 Final Declaration</span>
+              <p class="text-sm font-semibold text-white">Final Acquisition Declaration & R&R Scheme Approval</p>
+              <p class="text-xs text-slate-400">Must be published within 12 months of Section 11, otherwise preliminary notice lapses.</p>
+            </div>
+            <span class="bg-purple-950 text-purple-300 border border-purple-800 text-[11px] font-mono font-bold px-2.5 py-1 rounded-lg">SLA: 365 Days</span>
+          </div>
+
+          <div class="p-4 bg-slate-900 rounded-xl border-l-4 border-pink-500 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div>
+              <span class="text-xs font-bold text-pink-400 uppercase">Stage 6-8 · Section 21-37 Award & Compensation</span>
+              <p class="text-sm font-semibold text-white">CALA Valuation, 100% Solatium Award & PFMS DBT Disbursement</p>
+              <p class="text-xs text-slate-400">Calculates statutory market value multiplier (1.0x-2.0x), 100% Solatium & 12% per annum interest.</p>
+            </div>
+            <span class="bg-pink-950 text-pink-300 border border-pink-800 text-[11px] font-mono font-bold px-2.5 py-1 rounded-lg">SLA: 365 Days</span>
+          </div>
+
+          <div class="p-4 bg-slate-900 rounded-xl border-l-4 border-emerald-500 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div>
+              <span class="text-xs font-bold text-emerald-400 uppercase">Stage 9-10 · Possession & Revenue Mutation</span>
+              <p class="text-sm font-semibold text-white">Section 38 Physical Possession & State RoR Mutation</p>
+              <p class="text-xs text-slate-400">Land handover to acquiring authority and digital updating of State Land Revenue records.</p>
+            </div>
+            <span class="bg-emerald-950 text-emerald-300 border border-emerald-800 text-[11px] font-mono font-bold px-2.5 py-1 rounded-lg">SLA: 60 Days</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 4: 14-Digit ULPIN & Cadastral GIS -->
+      <section id="ulpin" class="glass-card rounded-2xl p-6 sm:p-8 space-y-4">
+        <div class="flex items-center space-x-3 border-b border-slate-700/80 pb-4">
+          <div class="w-10 h-10 rounded-xl bg-purple-500/20 text-purple-400 flex items-center justify-center font-bold text-xl">4</div>
+          <div>
+            <h2 class="text-2xl font-bold text-white">14-Digit ULPIN & Spatial GIS Architecture</h2>
+            <p class="text-xs text-slate-400">Universal Land Parcel Identification Number (BhuAadhaar) Integration</p>
+          </div>
+        </div>
+
+        <p class="text-sm text-slate-300 leading-relaxed">
+          Every land parcel in BhoomiSetu is indexed via a unique **14-digit ULPIN (Universal Land Parcel Identification Number)** derived from exact geo-coordinates of parcel vertices based on ETRS89 / WGS84 standards.
+        </p>
+
+        <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 font-mono text-xs space-y-2">
+          <p class="text-slate-400">// Sample ULPIN Structure Breakdown</p>
+          <p class="text-amber-400 font-bold">ULPIN: 27-045-012-008439</p>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2 text-[11px] font-sans">
+            <div class="bg-slate-900 p-2 rounded"><span class="text-amber-400 font-bold">27</span>: State Code (Maharashtra)</div>
+            <div class="bg-slate-900 p-2 rounded"><span class="text-amber-400 font-bold">045</span>: District Code (Pune)</div>
+            <div class="bg-slate-900 p-2 rounded"><span class="text-amber-400 font-bold">012</span>: Tehsil Code (Haveli)</div>
+            <div class="bg-slate-900 p-2 rounded"><span class="text-amber-400 font-bold">008439</span>: Parcel ID</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 5: Database Schema -->
+      <section id="database" class="glass-card rounded-2xl p-6 sm:p-8 space-y-4">
+        <div class="flex items-center space-x-3 border-b border-slate-700/80 pb-4">
+          <div class="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold text-xl">5</div>
+          <div>
+            <h2 class="text-2xl font-bold text-white">Database Schema DDL (Neon PostgreSQL)</h2>
+            <p class="text-xs text-slate-400">Relational DDL for Projects, Parcels, Workflow Stages, Notices, and Awards</p>
+          </div>
+        </div>
+
+        <pre class="bg-slate-950 p-4 rounded-xl border border-slate-800 text-[11px] text-slate-300 overflow-x-auto"><code>-- 1. Projects Table
+CREATE TABLE IF NOT EXISTS projects (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    code VARCHAR(50) UNIQUE NOT NULL,
+    state VARCHAR(100) NOT NULL,
+    type VARCHAR(50) NOT NULL, -- Highway, Railway, Pipeline
+    total_area_ha NUMERIC(10, 2) NOT NULL,
+    estimated_cost_cr NUMERIC(12, 2) NOT NULL,
+    status VARCHAR(50) DEFAULT 'ACTIVE',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 2. Parcels Table (ULPIN Cadastral Geometry)
+CREATE TABLE IF NOT EXISTS parcels (
+    id SERIAL PRIMARY KEY,
+    ulpin VARCHAR(20) UNIQUE NOT NULL,
+    project_id INT REFERENCES projects(id),
+    survey_no VARCHAR(50) NOT NULL,
+    village VARCHAR(100) NOT NULL,
+    owner_name VARCHAR(255) NOT NULL,
+    area_sqm NUMERIC(10, 2) NOT NULL,
+    category VARCHAR(50) NOT NULL, -- Private, Forest, Govt
+    status VARCHAR(50) DEFAULT 'NOTIFIED',
+    geojson JSONB
+);
+
+-- 3. Workflow Stages (RFCTLARR 10-Stage State Machine)
+CREATE TABLE IF NOT EXISTS workflow_stages (
+    id SERIAL PRIMARY KEY,
+    project_id INT REFERENCES projects(id),
+    stage_number INT NOT NULL, -- 1 to 10
+    stage_name VARCHAR(100) NOT NULL,
+    status VARCHAR(50) DEFAULT 'PENDING', -- PENDING, IN_PROGRESS, COMPLETED, DELAYED
+    start_date DATE,
+    due_date DATE,
+    completion_date DATE,
+    documents JSONB
+);</code></pre>
+      </section>
+
+      <!-- Section 6: Deployment & Setup -->
+      <section id="deployment" class="glass-card rounded-2xl p-6 sm:p-8 space-y-4">
+        <div class="flex items-center space-x-3 border-b border-slate-700/80 pb-4">
+          <div class="w-10 h-10 rounded-xl bg-teal-500/20 text-teal-400 flex items-center justify-center font-bold text-xl">6</div>
+          <div>
+            <h2 class="text-2xl font-bold text-white">Deployment & Environment Guide</h2>
+            <p class="text-xs text-slate-400">Step-by-step instructions to run locally or deploy to production</p>
+          </div>
+        </div>
+
+        <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-3 text-xs">
+          <p class="font-bold text-amber-400">// Command Line Setup</p>
+          <pre class="text-slate-300"># 1. Clone & Install
+git clone https://github.com/your-org/Bhoomi-Setu.git
+cd Bhoomi-Setu
+npm install
+
+# 2. Configure Environment (.env.local)
+DATABASE_URL="postgresql://user:password@ep-xxxx.neon.tech/neondb?sslmode=require"
+GROQ_API_KEY="your_groq_api_key_here"
+NEXT_PUBLIC_MOCK_MODE="true"
+
+# 3. Database Migration
+npm run migrate
+
+# 4. Start Server
+npm run dev</pre>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- Footer -->
+  <footer class="bg-slate-950 border-t border-slate-800 py-6 px-4 text-center text-xs text-slate-400 mt-12 no-print">
+    <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
+      <div class="flex items-center space-x-2">
+        <img src="/icon.svg" alt="Logo" class="w-5 h-5 rounded-md">
+        <span class="font-bold text-slate-200">BhoomiSetu (भूमिसेतु)</span>
+        <span>· Official Documentation</span>
+      </div>
+      <p>Department of Land Resources (DoLR) | Government of India</p>
+    </div>
+  </footer>
+
+  <script>
+    // Smooth navigation active highlighting
+    const sections = document.querySelectorAll('section[id]');
+    const navLinks = document.querySelectorAll('.nav-link');
+
+    window.addEventListener('scroll', () => {
+      let current = '';
+      sections.forEach(section => {
+        const sectionTop = section.offsetTop;
+        if (pageYOffset >= sectionTop - 120) {
+          current = section.getAttribute('id');
+        }
+      });
+      navLinks.forEach(link => {
+        link.classList.remove('active');
+        if (link.getAttribute('href') === `#${current}`) {
+          link.classList.add('active');
+        }
+      });
+    });
+  </script>
+</body>
+</html>

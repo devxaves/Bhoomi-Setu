@@ -141,7 +141,7 @@ export default function DashboardPage() {
               <span className="text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded bg-amber-100 text-amber-800 border border-amber-200">
                 Executive Compliance Console
               </span>
-              <span className="text-xs text-slate-400">SIH 2025 · PS 26016</span>
+              <span className="text-xs text-slate-500 font-medium">PM GatiShakti & RFCTLARR 2013 Aligned</span>
             </div>
             <h1 className="text-2xl font-black text-slate-900 mt-1">
               National Land Acquisition Operations & Compliance

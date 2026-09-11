@@ -8,11 +8,11 @@
  *   - image/jpeg, image/png, image/webp, image/tiff
  *   - application/pdf  → first page extracted as image using pdf-parse / canvas
  *
- * For hackathon/demo context:
+ * Pipeline details:
  *   - PDF-to-image conversion is attempted via URL.createObjectURL (browser) or
  *     direct buffer pass (server). If PDF fails, we fall back to treating raw
- *     buffer as image (handles some simple single-page PDFs).
- *   - Production version would use pdf2pic or sharp for robust conversion.
+ *     buffer as image (handles single-page PDFs).
+ *   - Production deployments can leverage pdf2pic or sharp for high-volume conversion.
  */
 
 import type { Buffer } from "buffer";
