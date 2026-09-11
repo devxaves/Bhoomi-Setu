@@ -1,44 +1,39 @@
 /**
  * BhoomiSetu — Current User Profile API
- * GET /api/me — returns the BhoomiSetu user record for the authenticated Clerk user
+ * GET /api/me — returns the BhoomiSetu user record for the authenticated user
  * Used by /workflow page to determine role for stage-advance gating
  */
 
-import { NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
-import { getUserByClerkId } from "@/lib/db/queries/users";
+import { NextRequest, NextResponse } from "next/server";
+import { getCurrentUser } from "@/lib/auth";
+import { getUserById } from "@/lib/db/queries/users";
 
-export async function GET() {
-  const { userId: clerkId } = await auth();
-  if (!clerkId) {
+export async function GET(req: NextRequest) {
+  const authUser = await getCurrentUser(req);
+  if (!authUser) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   try {
-    const user = await getUserByClerkId(clerkId);
+    const user = await getUserById(authUser.id);
 
     if (!user) {
-      // User is authenticated with Clerk but not yet in our DB
-      // Return a minimal guest profile — upsert happens on next write action
       return NextResponse.json({
         data: {
-          id: null,
-          clerk_id: clerkId,
-          email: null,
-          role: "citizen",         // safest default
-          jurisdiction: null,
+          id: authUser.id,
+          email: authUser.email,
+          role: authUser.role,
+          name: authUser.name,
         },
       });
     }
 
-    // Never return bank_ref or sensitive fields — users table has no PII except email/contact
     return NextResponse.json({
       data: {
         id: user.id,
-        clerk_id: user.clerk_id,
         email: user.email,
         role: user.role,
-        jurisdiction: user.jurisdiction,
+        name: user.name,
       },
     });
   } catch (err) {

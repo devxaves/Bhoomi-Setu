@@ -21,7 +21,8 @@
  *   - Section 19 → Award      : notified_on + 12 months  (lapse = acquisition void)
  *
  * Roles that can advance stages:
- *   - collector, state_admin, central_ministry (NOT lrb, NOT citizen)
+ *   - admin (full access)
+ *   - collector, state_admin, central_ministry (legacy roles, NOT lrb, NOT citizen)
  */
 
 // ── Stage order ───────────────────────────────────────────────────────────────
@@ -129,7 +130,7 @@ export const STAGE_INFO: Record<Stage, StageInfo> = {
 
 // ── Roles that can advance stages ────────────────────────────────────────────
 
-export const STAGE_ADVANCE_ROLES = new Set(['collector', 'state_admin', 'central_ministry']);
+export const STAGE_ADVANCE_ROLES = new Set(['admin', 'collector', 'state_admin', 'central_ministry']);
 
 export function canAdvanceStage(role: string): boolean {
   return STAGE_ADVANCE_ROLES.has(role);
@@ -187,7 +188,7 @@ export function validateTransition(ctx: TransitionContext): TransitionResult {
       allowed: false,
       error: 'UNAUTHORIZED_ROLE',
       message: `Role '${userRole}' is not authorised to advance project stages. ` +
-               `Only collector, state_admin, or central_ministry may do so.`,
+               `Only admin, collector, state_admin, or central_ministry may do so.`,
     };
   }
 

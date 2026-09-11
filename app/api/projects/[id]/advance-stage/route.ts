@@ -20,10 +20,10 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
+import { getCurrentUser } from "@/lib/auth";
 import { query, withTransaction } from "@/lib/db/pool";
 import type { PoolClient } from "pg";
-import { getUserByClerkId } from "@/lib/db/queries/users";
+import { getUserById } from "@/lib/db/queries/users";
 import { validateTransition, STAGE_INFO, STAGES } from "@/lib/workflow";
 import type { Stage } from "@/lib/workflow";
 
@@ -46,8 +46,8 @@ export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const { userId: clerkId } = await auth();
-  if (!clerkId) {
+  const user = await getCurrentUser(req);
+  if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -66,8 +66,8 @@ export async function POST(
     const toStage = body.to_stage as Stage;
 
     // ── 1. Resolve user role ─────────────────────────────────────────────────
-    const user = await getUserByClerkId(clerkId);
-    if (!user) {
+    const dbUser = await getUserById(user.id);
+    if (!dbUser) {
       return NextResponse.json(
         { error: "User not found in BhoomiSetu. Please complete registration." },
         { status: 403 }
@@ -87,17 +87,6 @@ export async function POST(
 
     const project = projectRows[0];
 
-    // Jurisdiction check: collector can only advance projects in their district
-    if (user.role === "collector" && user.jurisdiction && user.jurisdiction !== project.district) {
-      return NextResponse.json(
-        {
-          error: `Access denied. Your jurisdiction is ${user.jurisdiction}, ` +
-                 `but this project is in ${project.district}.`,
-        },
-        { status: 403 }
-      );
-    }
-
     // ── 3. Fetch active notifications for deadline checks ────────────────────
     const { rows: notifications } = await query<NotificationRow>(
       `SELECT section, deadline_on::text
@@ -113,7 +102,7 @@ export async function POST(
     const validation = validateTransition({
       fromStage: project.current_stage,
       toStage,
-      userRole: user.role,
+      userRole: dbUser.role,
       sec11DeadlineOn: sec11Notif?.deadline_on ?? null,
       sec19DeadlineOn: sec19Notif?.deadline_on ?? null,
     });
@@ -170,7 +159,7 @@ export async function POST(
         `INSERT INTO audit_log (actor_id, entity_type, entity_id, action, before_state, after_state)
          VALUES ($1, 'project', $2, $3, $4, $5)`,
         [
-          user.id,
+          dbUser.id,
           projectId,
           `stage_advance:${project.current_stage}→${toStage}`,
           JSON.stringify(beforeState),
@@ -189,7 +178,7 @@ export async function POST(
         to: toStage,
         actRef: stageInfo.actRef,
         description: stageInfo.description,
-        performedBy: { id: user.id, role: user.role, email: user.email },
+        performedBy: { id: dbUser.id, role: dbUser.role, email: dbUser.email },
         performedAt: now,
       },
       project: updatedProject,

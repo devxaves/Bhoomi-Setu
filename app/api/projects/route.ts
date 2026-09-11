@@ -5,13 +5,13 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@clerk/nextjs/server';
+import { getCurrentUser } from "@/lib/auth";
 import { listProjects, createProject, type CreateProjectInput } from '@/lib/db/queries/projects';
 
 // ── GET /api/projects ─────────────────────────────────────────────────────
 export async function GET(req: NextRequest) {
-  const { userId } = await auth();
-  if (!userId) {
+  const user = await getCurrentUser(req);
+  if (!user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
@@ -41,8 +41,8 @@ export async function GET(req: NextRequest) {
 
 // ── POST /api/projects ────────────────────────────────────────────────────
 export async function POST(req: NextRequest) {
-  const { userId } = await auth();
-  if (!userId) {
+  const user = await getCurrentUser(req);
+  if (!user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 

@@ -5,12 +5,12 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
+import { getCurrentUser } from "@/lib/auth";
 import { getAuditTrail, getRecentAuditEntries } from "@/lib/db/queries/audit";
 
 export async function GET(req: NextRequest) {
-  const { userId } = await auth();
-  if (!userId) {
+  const user = await getCurrentUser(req);
+  if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

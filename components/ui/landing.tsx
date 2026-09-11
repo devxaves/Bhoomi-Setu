@@ -5,12 +5,10 @@ import image3 from "../../public/images/pic3.jpg"
 import image4 from "../../public/images/pic4.jpg"
 import React, { useState, useEffect } from 'react';
 import Link from "next/link";
-import { UserButton, useUser } from "@clerk/nextjs";
 
 const FRALandingPage = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isClient, setIsClient] = useState(false);
-  const { isSignedIn, user } = useUser();
 
   useEffect(() => {
     setIsClient(true);
@@ -168,7 +166,7 @@ const FRALandingPage = () => {
             </p>
             <div className="flex justify-center space-x-4">
               <Link
-                href={isClient && isSignedIn ? "/dashboard" : "/sign-up"}
+                href="/login"
                 className="px-8 py-3 bg-orange-500 text-white rounded-lg text-lg font-semibold hover:bg-orange-600 transition shadow-lg"
               >
                 Get Started
@@ -313,7 +311,7 @@ const FRALandingPage = () => {
           </p>
           <div className="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4">
             <Link
-              href={isClient && isSignedIn ? "/dashboard" : "/sign-up"}
+              href="/login"
               className="px-8 py-3 bg-white text-orange-600 rounded-lg text-lg font-semibold hover:bg-gray-100 transition shadow-lg"
             >
               Get Started Now

@@ -15,7 +15,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
+import { getCurrentUser } from "@/lib/auth";
 import { query } from "@/lib/db/pool";
 import type { Parcel } from "@/lib/db/queries/parcels";
 import type { Polygon, MultiPolygon, Feature, Geometry } from "geojson";
@@ -29,8 +29,8 @@ interface IntersectRequestBody {
 export async function POST(req: NextRequest) {
   // This endpoint is accessible to authenticated users only
   // (public version for /citizen/lookup uses a separate scoped endpoint)
-  const { userId } = await auth();
-  if (!userId) {
+  const user = await getCurrentUser(req);
+  if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

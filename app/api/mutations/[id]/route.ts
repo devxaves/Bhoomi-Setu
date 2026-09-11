@@ -8,8 +8,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { currentUser } from "@clerk/nextjs/server";
-import { getUserByClerkId } from "@/lib/db/queries/users";
+import { getCurrentUser } from "@/lib/auth";
 import { canAdvanceStage } from "@/lib/workflow";
 import { updateMutationStatus } from "@/lib/db/queries/mutations";
 
@@ -34,13 +33,10 @@ export async function PATCH(
     let userRole = body.role || "collector";
 
     try {
-      const clerkUser = await currentUser();
-      if (clerkUser) {
-        const dbUser = await getUserByClerkId(clerkUser.id);
-        if (dbUser) {
-          userRole = dbUser.role;
-          actorId = dbUser.id;
-        }
+      const authUser = await getCurrentUser(req);
+      if (authUser) {
+        userRole = authUser.role;
+        actorId = authUser.id;
       }
     } catch {
       // Allow fallback

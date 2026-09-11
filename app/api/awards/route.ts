@@ -7,8 +7,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { currentUser } from "@clerk/nextjs/server";
-import { getUserByClerkId } from "@/lib/db/queries/users";
+import { getCurrentUser } from "@/lib/auth";
 import { canAdvanceStage } from "@/lib/workflow";
 import {
   createAward,
@@ -81,13 +80,10 @@ export async function POST(req: NextRequest) {
     let userRole = body.role || "collector"; // fallback for testing / admin token
 
     try {
-      const clerkUser = await currentUser();
-      if (clerkUser) {
-        const dbUser = await getUserByClerkId(clerkUser.id);
-        if (dbUser) {
-          userRole = dbUser.role;
-          actorId = dbUser.id;
-        }
+      const authUser = await getCurrentUser(req);
+      if (authUser) {
+        userRole = authUser.role;
+        actorId = authUser.id;
       }
     } catch {
       // Allow fallback for local testing

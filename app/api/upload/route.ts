@@ -18,7 +18,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
+import { getCurrentUser } from "@/lib/auth";
 import { runOCR, validateDocumentMime, inferDocType } from "@/lib/ocr";
 import { runNER } from "@/lib/ner";
 import { checkDiscrepancies, summariseDiscrepancies } from "@/lib/discrepancy";
@@ -30,8 +30,8 @@ const MAX_SIZE_BYTES = 10 * 1024 * 1024;
 export const runtime = "nodejs"; // Tesseract.js requires Node.js runtime
 
 export async function POST(req: NextRequest) {
-  const { userId } = await auth();
-  if (!userId) {
+  const user = await getCurrentUser(req);
+  if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

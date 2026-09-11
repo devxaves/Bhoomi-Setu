@@ -5,7 +5,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@clerk/nextjs/server';
+import { getCurrentUser } from "@/lib/auth";
 import {
   listParcels,
   listParcelsForMap,
@@ -16,8 +16,8 @@ import {
 
 // ── GET /api/parcels ──────────────────────────────────────────────────────
 export async function GET(req: NextRequest) {
-  const { userId } = await auth();
-  if (!userId) {
+  const user = await getCurrentUser(req);
+  if (!user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
@@ -67,8 +67,8 @@ export async function GET(req: NextRequest) {
 
 // ── POST /api/parcels ──────────────────────────────────────────────────────
 export async function POST(req: NextRequest) {
-  const { userId } = await auth();
-  if (!userId) {
+  const user = await getCurrentUser(req);
+  if (!user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 

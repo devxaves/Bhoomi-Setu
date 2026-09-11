@@ -6,18 +6,17 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
+import { getCurrentUser } from "@/lib/auth";
 import {
   createNotification,
   getNotificationsByProject,
   getUpcomingDeadlines,
 } from "@/lib/db/queries/notifications";
-import { getUserByClerkId } from "@/lib/db/queries/users";
 import { canAdvanceStage } from "@/lib/workflow";
 
 export async function GET(req: NextRequest) {
-  const { userId: clerkId } = await auth();
-  if (!clerkId) {
+  const user = await getCurrentUser(req);
+  if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -50,15 +49,14 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  const { userId: clerkId } = await auth();
-  if (!clerkId) {
+  const user = await getCurrentUser(req);
+  if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   try {
     // Only authorised roles can record notifications
-    const user = await getUserByClerkId(clerkId);
-    if (!user || !canAdvanceStage(user.role)) {
+    if (!canAdvanceStage(user.role)) {
       return NextResponse.json(
         { error: "Only collector, state_admin, or central_ministry may record notifications" },
         { status: 403 }
