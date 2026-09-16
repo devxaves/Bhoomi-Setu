@@ -427,30 +427,37 @@ export default function LandingPage() {
             </div>
 
             {/* Right: GIS Visual Card */}
-            <div className="relative rounded-2xl bg-slate-900 overflow-hidden shadow-2xl border border-slate-700/60 aspect-[4/3] lg:aspect-auto lg:h-[460px]">
+            {/* Right: GIS Visual Card with Slow Scanning Line & Live Telemetry */}
+            <div className="relative rounded-2xl bg-slate-950 overflow-hidden shadow-2xl border border-slate-700/80 aspect-[4/3] lg:aspect-auto lg:h-[460px]">
               <Image
                 src="/images/pic2.jpg"
                 alt="National GIS Cadastral Map"
                 fill
-                className="object-cover opacity-80"
+                className="object-cover opacity-75"
                 priority
               />
               <div className="absolute inset-0 bg-gradient-to-t from-slate-950/95 via-transparent to-slate-950/40" />
 
+              {/* Slow Scan Beam */}
+              <div className="absolute inset-x-0 h-32 bg-gradient-to-b from-transparent via-cyan-400/15 to-transparent animate-scan-beam pointer-events-none" />
+
+              {/* Slow Ambient Glow */}
+              <div className="absolute -top-10 -right-10 w-48 h-48 bg-orange-500/20 rounded-full blur-2xl animate-pulse-slow pointer-events-none" />
+
               {/* Top bar */}
-              <div className="absolute top-3 left-3 right-3 flex items-center justify-between">
-                <span className="flex items-center gap-2 px-3 py-1 rounded-full bg-slate-900/85 backdrop-blur-md border border-slate-700 text-[11px] text-slate-200 font-mono">
+              <div className="absolute top-3 left-3 right-3 flex items-center justify-between z-10">
+                <span className="flex items-center gap-2 px-3 py-1 rounded-full bg-slate-950/85 backdrop-blur-md border border-slate-700/80 text-[11px] text-slate-200 font-mono">
                   <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
                   <span>CADASTRE · Sentinel-2 Multi-Band</span>
                 </span>
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-orange-500 text-white uppercase tracking-wider">
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-orange-500 text-white uppercase tracking-wider shadow-sm">
                   Zoom 14.5×
                 </span>
               </div>
 
               {/* Parcel Live Badge & Popup */}
-              <div className="absolute bottom-4 left-4 right-4">
-                <div className="bg-slate-900/95 backdrop-blur-md rounded-xl p-4 border border-slate-700/90 text-white space-y-2.5 shadow-xl">
+              <div className="absolute bottom-4 left-4 right-4 z-10">
+                <div className="bg-slate-950/90 backdrop-blur-md rounded-xl p-4 border border-slate-700/90 text-white space-y-2.5 shadow-2xl">
                   <div className="flex items-center justify-between text-xs">
                     <span className="font-bold text-orange-400 font-mono flex items-center gap-1.5">
                       <MapPin className="w-3.5 h-3.5 text-orange-400" /> ULPIN: 29210301001001
@@ -481,22 +488,47 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── STATS STRIP ────────────────────────────────────────────── */}
-      <section className="relative bg-gradient-to-r from-slate-900 via-slate-850 to-slate-900 text-white overflow-hidden border-y border-slate-800">
-        <div className="absolute inset-0 bg-grid opacity-5" />
-        <div className="relative mx-auto max-w-7xl px-4 sm:px-6 py-8 grid grid-cols-2 sm:grid-cols-4 gap-6">
-          {[
-            { value: "2.8M+", label: t("stat.parcels", "ULPIN-Keyed Parcels"), sub: "DILRMP Synced" },
-            { value: "10", label: t("stat.stages", "Statutory Stages"), sub: "RFCTLARR Act 2013" },
-            { value: "28", label: t("stat.states", "States & UTs"), sub: "PM GatiShakti Projects" },
-            { value: "₹4.2T", label: t("stat.disbursed", "Awards Monitored"), sub: "PFMS DBT Integrated" },
-          ].map((s, i) => (
-            <div key={i} className={`text-center animate-count-up animate-stagger-${i + 1}`}>
-              <div className="text-2xl sm:text-3xl font-heading font-extrabold text-orange-400">{s.value}</div>
-              <div className="text-xs text-slate-200 font-semibold mt-1">{s.label}</div>
-              {s.sub && <div className="text-[10px] text-slate-400 mt-0.5 font-label">{s.sub}</div>}
-            </div>
-          ))}
+      {/* ── STATS STRIP WITH SLOW SMOOTH MOTION AMBIENT BACKGROUND ───── */}
+      <section className="relative bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 text-white overflow-hidden border-y border-slate-800 py-10">
+        {/* Slow Motion Floating Ambient Luminous Orbs */}
+        <div className="absolute -left-20 -top-24 w-80 h-80 rounded-full bg-orange-500/15 blur-3xl animate-float-slow pointer-events-none" />
+        <div className="absolute -right-20 -bottom-24 w-80 h-80 rounded-full bg-emerald-500/15 blur-3xl animate-float-slow-reverse pointer-events-none" />
+        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[32rem] h-36 rounded-full bg-amber-400/10 blur-3xl animate-pulse-slow pointer-events-none" />
+
+        {/* Slow Drifting Constellation / Cadastral Vector Grid Overlay */}
+        <div className="absolute inset-0 opacity-[0.07] bg-grid animate-grid-drift pointer-events-none" />
+
+        {/* Subtle Top Accent Shimmer Line */}
+        <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-orange-400/40 to-transparent" />
+
+        <div className="relative mx-auto max-w-7xl px-4 sm:px-6">
+          {/* Header Telemetry Pill */}
+          <div className="flex items-center justify-center mb-6">
+            <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-800/80 border border-slate-700/80 text-[11px] font-mono text-slate-300 shadow-xs">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
+              <span>LIVE NATIONAL LAND TELEMETRY · RFCTLARR ACT 2013</span>
+            </span>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6">
+            {[
+              { value: "2.8M+", label: t("stat.parcels", "ULPIN-Keyed Parcels"), sub: "DILRMP Synced", color: "text-orange-400" },
+              { value: "10", label: t("stat.stages", "Statutory Stages"), sub: "RFCTLARR Act 2013", color: "text-amber-400" },
+              { value: "28", label: t("stat.states", "States & UTs"), sub: "PM GatiShakti Projects", color: "text-emerald-400" },
+              { value: "₹4.2T", label: t("stat.disbursed", "Awards Monitored"), sub: "PFMS DBT Integrated", color: "text-orange-400" },
+            ].map((s, i) => (
+              <div
+                key={i}
+                className="group relative p-4 sm:p-5 rounded-2xl bg-white/[0.03] border border-white/[0.08] hover:border-orange-400/40 hover:bg-white/[0.06] transition-all text-center"
+              >
+                <div className={`text-2xl sm:text-3xl lg:text-4xl font-heading font-extrabold ${s.color} font-mono tracking-tight`}>
+                  {s.value}
+                </div>
+                <div className="text-xs sm:text-sm text-slate-200 font-semibold mt-1.5 font-heading">{s.label}</div>
+                {s.sub && <div className="text-[10px] text-slate-400 mt-0.5 font-mono">{s.sub}</div>}
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -897,32 +929,40 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── FOOTER CTA ──────────────────────────────────────────────── */}
-      <section className="relative bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 text-white py-12 overflow-hidden">
-        <div className="absolute inset-0 bg-dots opacity-5" />
+      {/* ── FOOTER CTA WITH SLOW SMOOTH MOTION AMBIENT BACKGROUND ────── */}
+      <section className="relative bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 text-white py-16 overflow-hidden border-t border-slate-800">
+        {/* Slow Motion Floating Ambient Glows */}
+        <div className="absolute -left-20 -top-20 w-72 h-72 rounded-full bg-orange-500/15 blur-3xl animate-float-slow pointer-events-none" />
+        <div className="absolute -right-20 -bottom-20 w-72 h-72 rounded-full bg-emerald-500/15 blur-3xl animate-float-slow-reverse pointer-events-none" />
+        <div className="absolute inset-0 bg-dots opacity-10 animate-grid-drift pointer-events-none" />
+
         <div className="relative mx-auto max-w-7xl px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-6">
           <div>
-            <h2 className="text-xl font-heading font-extrabold text-white mb-1">
-              {t("cta.title", "Start with GIS Atlas")}
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-500/20 text-orange-300 border border-orange-500/30 text-xs font-mono mb-3">
+              <Sparkles className="w-3.5 h-3.5 text-orange-400 animate-pulse-slow" />
+              <span>DILRMP + PM GatiShakti Compliant</span>
+            </div>
+            <h2 className="text-xl sm:text-2xl font-heading font-extrabold text-white mb-1.5">
+              {t("cta.title", "Ready to explore the National Cadastral Atlas?")}
             </h2>
-            <p className="text-sm text-slate-400">
-              {t("cta.desc", "Visualise land parcels, project corridors and acquisition risk across India.")}
+            <p className="text-sm text-slate-400 max-w-xl leading-relaxed">
+              {t("cta.desc", "Visualise 2.8M+ land parcels, track Section 11 to Section 38 statutory progress, and assess litigation risk in real time.")}
             </p>
           </div>
-          <div className="flex gap-3 flex-shrink-0">
+          <div className="flex flex-wrap gap-3 flex-shrink-0">
             <Link
               href="/atlas"
-              className="btn-primary text-sm"
+              className="btn-primary text-sm px-5 py-2.5 shadow-lg shadow-orange-500/20"
             >
               <MapPin className="w-4 h-4" />
-              {t("cta.btn", "Open GIS Atlas")}
+              <span>{t("cta.btn", "Open GIS Atlas")}</span>
             </Link>
             <Link
               href="/login"
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl border border-slate-600 hover:border-slate-500 text-slate-200 font-semibold text-sm transition-colors"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl border border-slate-700 hover:border-slate-500 bg-slate-900 hover:bg-slate-850 text-slate-200 font-semibold text-sm transition-colors shadow-sm"
             >
-              <Shield className="w-4 h-4" />
-              {t("cta.login", "Official Login")}
+              <Shield className="w-4 h-4 text-orange-400" />
+              <span>{t("cta.login", "Official Login")}</span>
             </Link>
           </div>
         </div>

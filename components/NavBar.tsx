@@ -123,9 +123,9 @@ export default function NavBar() {
   const currentLangObj = availableLanguages.find((l) => l.code === language) || availableLanguages[0];
 
   return (
-    <div className="sticky top-0 z-50">
+    <div className="sticky top-0 z-50 bg-white shadow-xs">
       {/* ── 1. Government of India Strip ──────────────────────────────── */}
-      <div className="bg-slate-900 text-slate-300 text-[11px] py-1.5 px-3 sm:px-4">
+      <div className="bg-slate-950 text-slate-300 text-[11px] py-1.5 px-3 sm:px-4 border-b border-slate-800">
         <div className="mx-auto max-w-7xl flex items-center justify-between gap-2">
           <div className="flex items-center gap-2 truncate">
             <span className="inline-block w-1.5 h-1.5 rounded-full bg-orange-400 animate-pulse flex-shrink-0" />
@@ -144,7 +144,7 @@ export default function NavBar() {
 
           <div className="flex items-center gap-2 sm:gap-3 text-[11px] text-slate-400 flex-shrink-0">
             {/* Helpline */}
-            <div className="hidden sm:flex items-center gap-1 bg-slate-800/80 px-2 py-0.5 rounded-lg border border-slate-700/40 text-slate-300">
+            <div className="hidden sm:flex items-center gap-1 bg-slate-900 px-2 py-0.5 rounded-lg border border-slate-800 text-slate-300">
               <PhoneCall className="w-3 h-3 text-emerald-400" />
               <span className="hidden xs:inline">{t("govt.helpline", "Helpline")}:</span>
               <strong className="text-white font-label">1800-11-LAND</strong>
@@ -155,7 +155,7 @@ export default function NavBar() {
               <button
                 type="button"
                 onClick={() => setLangDropdownOpen(!langDropdownOpen)}
-                className="flex items-center gap-1.5 px-2 py-0.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 border border-slate-700/40 text-slate-200 font-medium text-[11px] transition-all cursor-pointer"
+                className="flex items-center gap-1.5 px-2 py-0.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-200 font-medium text-[11px] transition-all cursor-pointer"
                 aria-label="Select Language"
               >
                 <Globe2 className="w-3 h-3 text-orange-400" />
@@ -164,7 +164,7 @@ export default function NavBar() {
               </button>
 
               {langDropdownOpen && (
-                <div className="absolute top-full right-0 mt-1.5 w-36 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl p-1.5 z-50 animate-fade-in-scale space-y-0.5">
+                <div className="absolute top-full right-0 mt-1.5 w-36 bg-slate-950 border border-slate-700 rounded-xl shadow-2xl p-1.5 z-50 animate-fade-in-scale space-y-0.5">
                   <div className="px-2 py-1 text-[9px] font-bold uppercase tracking-widest text-slate-500 font-label">
                     भाषा / Language
                   </div>
@@ -178,7 +178,7 @@ export default function NavBar() {
                       className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium text-left transition-all cursor-pointer ${
                         language === lang.code
                           ? "bg-orange-500/20 text-orange-300 font-bold"
-                          : "text-slate-300 hover:bg-slate-800 hover:text-white"
+                          : "text-slate-300 hover:bg-slate-850 hover:text-white"
                       }`}
                     >
                       <span>{lang.nativeLabel}</span>
@@ -192,7 +192,7 @@ export default function NavBar() {
             {/* Font Accessibility */}
             <div className="hidden sm:flex items-center gap-0.5 border-l border-slate-700/50 pl-2">
               {["A-", "A", "A+"].map((s) => (
-                <span key={s} className="px-1 py-0.5 rounded bg-slate-800/80 text-slate-400 font-label text-[10px] font-bold hover:text-white hover:bg-slate-700 transition-colors cursor-pointer">
+                <span key={s} className="px-1 py-0.5 rounded bg-slate-900 text-slate-400 font-label text-[10px] font-bold hover:text-white hover:bg-slate-800 transition-colors cursor-pointer">
                   {s}
                 </span>
               ))}
@@ -201,8 +201,8 @@ export default function NavBar() {
         </div>
       </div>
 
-      {/* ── 2. Main Navigation Bar ──────────────────────────────────── */}
-      <header className="glass border-b border-border/60 shadow-sm">
+      {/* ── 2. Main Navigation Bar (100% Solid White Opaque) ─────────── */}
+      <header className="bg-white border-b border-slate-200/90 shadow-2xs">
         <nav className="mx-auto flex max-w-7xl items-center justify-between px-3 sm:px-4 py-2.5 gap-2 sm:gap-4">
           {/* Brand */}
           <Link
@@ -246,10 +246,10 @@ export default function NavBar() {
                   className={`relative flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-xl transition-all whitespace-nowrap group ${
                     isActive
                       ? "bg-orange-50 text-orange-800 font-bold"
-                      : "text-foreground/60 hover:text-orange-700 hover:bg-orange-50/60"
+                      : "text-foreground/70 hover:text-orange-700 hover:bg-orange-50/60"
                   }`}
                 >
-                  <Icon className={`h-3.5 w-3.5 transition-colors ${isActive ? "text-orange-600" : "text-foreground/40 group-hover:text-orange-500"}`} />
+                  <Icon className={`h-3.5 w-3.5 transition-colors ${isActive ? "text-orange-600" : "text-foreground/50 group-hover:text-orange-500"}`} />
                   <span>{link.label}</span>
                   {/* Active indicator */}
                   {isActive && (
@@ -267,20 +267,20 @@ export default function NavBar() {
                 className={`flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-xl transition-all cursor-pointer whitespace-nowrap ${
                   isToolsActive || toolsDropdownOpen
                     ? "bg-slate-100 text-foreground font-bold"
-                    : "text-foreground/60 hover:text-foreground hover:bg-slate-50"
+                    : "text-foreground/70 hover:text-foreground hover:bg-slate-50"
                 }`}
               >
-                <Layers className={`h-3.5 w-3.5 transition-colors ${isToolsActive ? "text-orange-600" : "text-foreground/40"}`} />
+                <Layers className={`h-3.5 w-3.5 transition-colors ${isToolsActive ? "text-orange-600" : "text-foreground/50"}`} />
                 <span>{t("nav.tools", "Governance Tools")}</span>
                 <ChevronDown
-                  className={`h-3 w-3 text-foreground/40 transition-transform duration-200 ${
+                  className={`h-3 w-3 text-foreground/50 transition-transform duration-200 ${
                     toolsDropdownOpen ? "rotate-180 text-foreground" : ""
                   }`}
                 />
               </button>
 
               {toolsDropdownOpen && (
-                <div className="absolute top-full right-0 mt-2 w-80 glass rounded-2xl border border-border shadow-xl p-2 z-50 animate-fade-in-scale space-y-0.5">
+                <div className="absolute top-full right-0 mt-2 w-80 bg-white rounded-2xl border border-slate-200 shadow-2xl p-2 z-50 animate-fade-in-scale space-y-0.5">
                   <div className="px-3 py-1.5 section-label">
                     {t("nav.tools", "Governance Tools")}
                   </div>
@@ -318,21 +318,21 @@ export default function NavBar() {
             {/* ULPIN Search CTA */}
             <Link
               href="/citizen"
-              className="hidden md:inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-200 hover:bg-emerald-100 hover:border-emerald-300 transition-all shadow-sm whitespace-nowrap group"
+              className="hidden md:inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-200 hover:bg-emerald-100 hover:border-emerald-300 transition-all shadow-xs whitespace-nowrap group"
             >
               <Search className="w-3.5 h-3.5 text-emerald-600 group-hover:scale-110 transition-transform" />
               <span>{t("nav.ulpinSearch", "ULPIN Search")}</span>
             </Link>
 
             {/* Auth */}
-            <div className="border-l border-border/60 pl-2 sm:pl-3 flex items-center gap-1.5">
+            <div className="border-l border-slate-200 pl-2 sm:pl-3 flex items-center gap-1.5">
               {loading ? (
                 <div className="h-7 w-7 rounded-xl skeleton" />
               ) : user ? (
                 <div className="flex items-center gap-1.5">
-                  <div className="hidden sm:flex items-center gap-1.5 text-xs bg-muted/60 px-2.5 py-1.5 rounded-xl border border-border/50">
-                    <User className="h-3.5 w-3.5 text-muted-foreground" />
-                    <span className="max-w-[90px] truncate font-medium text-foreground/80">{user.name || user.email}</span>
+                  <div className="hidden sm:flex items-center gap-1.5 text-xs bg-slate-50 px-2.5 py-1.5 rounded-xl border border-slate-200">
+                    <User className="h-3.5 w-3.5 text-slate-500" />
+                    <span className="max-w-[90px] truncate font-medium text-slate-800">{user.name || user.email}</span>
                     <span
                       className={`text-[9px] font-bold font-label px-1.5 py-0.5 rounded-full ${
                         user.role === "admin"
@@ -346,7 +346,7 @@ export default function NavBar() {
                   <button
                     onClick={logout}
                     title={t("nav.signOut", "Sign Out")}
-                    className="flex items-center gap-1 text-xs text-muted-foreground hover:text-red-600 p-1.5 rounded-xl hover:bg-red-50 border border-transparent hover:border-red-200 transition-all cursor-pointer"
+                    className="flex items-center gap-1 text-xs text-slate-500 hover:text-red-600 p-1.5 rounded-xl hover:bg-red-50 border border-transparent hover:border-red-200 transition-all cursor-pointer"
                   >
                     <LogOut className="h-3.5 w-3.5" />
                   </button>
@@ -366,7 +366,7 @@ export default function NavBar() {
             <button
               type="button"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="lg:hidden p-2 rounded-xl text-foreground/60 hover:text-foreground hover:bg-muted border border-border/50 transition-all cursor-pointer"
+              className="lg:hidden p-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 border border-slate-200 transition-all cursor-pointer"
               aria-label="Toggle navigation menu"
             >
               {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -374,9 +374,9 @@ export default function NavBar() {
           </div>
         </nav>
 
-        {/* ── 3. Mobile Navigation Drawer ──────────────────────────────── */}
+        {/* ── 3. Mobile Navigation Drawer (100% Solid White) ─────────── */}
         {mobileMenuOpen && (
-          <div className="lg:hidden border-t border-border/60 bg-white/98 backdrop-blur-xl px-4 py-4 space-y-4 shadow-xl animate-fade-in max-h-[85vh] overflow-y-auto">
+          <div className="lg:hidden border-t border-slate-200 bg-white px-4 py-4 space-y-4 shadow-2xl animate-fade-in max-h-[85vh] overflow-y-auto">
             {/* Mobile Language Switcher */}
             <div className="flex items-center justify-between p-3 bg-muted/50 rounded-xl border border-border/50">
               <span className="text-xs font-bold text-foreground flex items-center gap-1.5 font-heading">

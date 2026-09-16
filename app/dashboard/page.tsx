@@ -237,15 +237,28 @@ export default function DashboardPage() {
         </div>
 
         {/* ── CRITICAL DIFFERENTIATOR: Mutation Rate vs Physical Possession Rate ── */}
-        <div className="bg-gradient-to-r from-[#1A1A2E] via-[#232342] to-[#1E1B4B] rounded-2xl p-6 sm:p-8 text-white shadow-xl relative overflow-hidden">
-          <div className="absolute right-0 bottom-0 w-80 h-80 bg-orange-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="bg-gradient-to-r from-slate-950 via-slate-900 to-[#1A1A2E] rounded-2xl p-6 sm:p-8 text-white shadow-xl relative overflow-hidden border border-slate-800/80">
+          {/* Slow Ambient Floating Orbs */}
+          <div className="absolute -left-12 -top-12 w-64 h-64 bg-orange-500/15 rounded-full blur-3xl animate-float-slow pointer-events-none" />
+          <div className="absolute right-0 -bottom-16 w-80 h-80 bg-blue-500/15 rounded-full blur-3xl animate-float-slow-reverse pointer-events-none" />
+          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl animate-pulse-slow pointer-events-none" />
+
+          {/* Drifting Cadastral Grid Texture */}
+          <div className="absolute inset-0 opacity-[0.07] bg-grid animate-grid-drift pointer-events-none" />
+
+          {/* Slow Scanning Light Beam */}
+          <div className="absolute inset-x-0 h-24 bg-gradient-to-b from-transparent via-orange-400/10 to-transparent animate-scan-beam pointer-events-none" />
+
+          {/* Ambient Top Glow Line */}
+          <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-orange-400/50 to-transparent" />
+
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10">
             <div className="space-y-2 max-w-2xl">
               <div className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider px-3 py-1 rounded-full bg-orange-500/20 text-orange-300 border border-orange-400/30">
                 <FileCheck className="h-3.5 w-3.5" />
                 Statutory Gap Indicator
               </div>
-              <h2 className="text-xl sm:text-2xl font-heading font-bold tracking-tight">
+              <h2 className="text-xl sm:text-2xl font-heading font-bold tracking-tight text-white">
                 Physical Possession Rate vs. Revenue Record Mutation Rate
               </h2>
               <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
@@ -256,30 +269,24 @@ export default function DashboardPage() {
             </div>
 
             <div className="flex items-center gap-4 flex-shrink-0 self-start lg:self-auto">
-              <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 sm:p-5 border border-white/15 text-center min-w-[140px] shadow-lg">
-                <div className="text-[11px] text-blue-200 font-semibold uppercase tracking-wider">Possession Rate</div>
-                <div className="text-3xl sm:text-4xl font-mono font-black text-blue-300 mt-1">{kpis.possessionRatePct}%</div>
-                <div className="text-[10px] text-blue-200/80 mt-1">Physical control (§38)</div>
+              <div className="bg-slate-900/80 backdrop-blur-md rounded-2xl p-4 sm:p-5 border border-slate-700/80 text-center min-w-[140px] shadow-lg relative group overflow-hidden">
+                <div className="absolute inset-0 bg-blue-500/5 group-hover:bg-blue-500/10 transition-colors" />
+                <div className="text-[11px] text-blue-300 font-semibold uppercase tracking-wider relative z-10">Possession Rate</div>
+                <div className="text-3xl sm:text-4xl font-mono font-black text-blue-300 mt-1 relative z-10">{kpis.possessionRatePct}%</div>
+                <div className="text-[10px] text-blue-200/70 mt-1 relative z-10">Physical control (§38)</div>
               </div>
 
-              <div className="text-2xl font-light text-slate-400">vs</div>
+              <div className="text-2xl font-light text-slate-500">vs</div>
 
-              <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 sm:p-5 border border-white/15 text-center min-w-[140px] shadow-lg">
-                <div className="text-[11px] text-amber-200 font-semibold uppercase tracking-wider">Mutation Rate</div>
-                <div className="text-3xl sm:text-4xl font-mono font-black text-amber-300 mt-1">{kpis.mutationCompletionRatePct}%</div>
-                <div className="text-[10px] text-amber-200/80 mt-1">Legal RoR title transfer</div>
+              <div className="bg-slate-900/80 backdrop-blur-md rounded-2xl p-4 sm:p-5 border border-slate-700/80 text-center min-w-[140px] shadow-lg relative group overflow-hidden">
+                <div className="absolute inset-0 bg-amber-500/5 group-hover:bg-amber-500/10 transition-colors" />
+                <div className="text-[11px] text-amber-300 font-semibold uppercase tracking-wider relative z-10">Mutation Rate</div>
+                <div className="text-3xl sm:text-4xl font-mono font-black text-amber-300 mt-1 relative z-10">{kpis.mutationCompletionRatePct}%</div>
+                <div className="text-[10px] text-amber-200/70 mt-1 relative z-10">Legal RoR title transfer</div>
               </div>
             </div>
           </div>
 
-          {kpis.mutationLagParcelsCount > 0 && (
-            <div className="mt-6 pt-4 border-t border-white/10 flex items-center gap-2.5 text-xs text-amber-300 font-medium">
-              <AlertTriangle className="h-4 w-4 text-amber-400 shrink-0" />
-              <span>
-                <strong>{kpis.mutationLagParcelsCount} parcels</strong> currently have physical possession taken without completed revenue title mutation in Tehsil records.
-              </span>
-            </div>
-          )}
         </div>
 
         {/* ── Charts Grid ─────────────────────────────────────────────── */}

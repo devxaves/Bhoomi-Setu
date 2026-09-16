@@ -210,6 +210,75 @@
   100% { transform: scale(2.5); opacity: 0; }
 }
 
+/* ── Slow Smooth Motion Keyframes for Dark Sections & Ambient BG ── */
+@keyframes floatSlow {
+  0%, 100% {
+    transform: translate(0px, 0px) scale(1);
+  }
+  33% {
+    transform: translate(30px, -20px) scale(1.08);
+  }
+  66% {
+    transform: translate(-25px, 15px) scale(0.95);
+  }
+}
+
+@keyframes floatSlowReverse {
+  0%, 100% {
+    transform: translate(0px, 0px) scale(1);
+  }
+  33% {
+    transform: translate(-35px, 20px) scale(0.92);
+  }
+  66% {
+    transform: translate(25px, -18px) scale(1.06);
+  }
+}
+
+@keyframes pulseSlow {
+  0%, 100% {
+    opacity: 0.15;
+    transform: scale(0.95);
+  }
+  50% {
+    opacity: 0.45;
+    transform: scale(1.15);
+  }
+}
+
+@keyframes radarSweep {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+@keyframes scanBeam {
+  0% {
+    top: -10%;
+    opacity: 0;
+  }
+  15% {
+    opacity: 0.7;
+  }
+  85% {
+    opacity: 0.7;
+  }
+  100% {
+    top: 110%;
+    opacity: 0;
+  }
+}
+
+@keyframes gridDrift {
+  0% { transform: translate(0, 0); }
+  50% { transform: translate(-15px, -10px); }
+  100% { transform: translate(0, 0); }
+}
+
+@keyframes auroraWave {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
 /* ── Animation Utility Classes ─────────────────────────────────── */
 .animate-fade-in        { animation: fadeIn var(--anim-normal) ease-out both; }
 .animate-fade-in-up     { animation: fadeInUp var(--anim-slow) ease-out both; }
@@ -219,10 +288,17 @@
 .animate-slide-in-right { animation: slideInRight var(--anim-normal) ease-out both; }
 .animate-scale-in       { animation: scaleIn var(--anim-normal) ease-out both; }
 .animate-float          { animation: float 3s ease-in-out infinite; }
+.animate-float-slow     { animation: floatSlow 18s ease-in-out infinite; }
+.animate-float-slow-reverse { animation: floatSlowReverse 22s ease-in-out infinite; }
+.animate-pulse-slow     { animation: pulseSlow 8s ease-in-out infinite; }
 .animate-pulse-glow     { animation: pulse-glow 2s ease-in-out infinite; }
 .animate-border-glow    { animation: borderGlow 2s ease-in-out infinite; }
 .animate-count-up       { animation: countUp var(--anim-slow) ease-out both; }
 .animate-spin-slow      { animation: spinSlow 3s linear infinite; }
+.animate-radar-sweep    { animation: radarSweep 16s linear infinite; }
+.animate-scan-beam      { animation: scanBeam 6s ease-in-out infinite; }
+.animate-grid-drift     { animation: gridDrift 20s ease-in-out infinite; }
+.animate-aurora         { background-size: 200% 200%; animation: auroraWave 14s ease infinite; }
 
 .animate-gradient {
   background-size: 200% 200%;
