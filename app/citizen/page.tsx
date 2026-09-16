@@ -10,6 +10,7 @@
  *   the single associated family's R&R status via anonymized family_ref
  * - ZERO PII LEAKS: No claimant names, no phone numbers, no bank accounts
  * - Grievance submission form persisting directly to the grievances table
+ * - Redesigned with White + Warm Orange palette, Sora & Space Grotesk typography
  */
 
 import { useState } from "react";
@@ -29,6 +30,7 @@ import {
   FileText,
   HelpCircle,
   Building2,
+  Sparkles,
 } from "lucide-react";
 import type { CitizenParcelLookup } from "@/lib/db/queries/citizen";
 
@@ -43,11 +45,6 @@ export default function CitizenPortalPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [parcelData, setParcelData] = useState<CitizenParcelLookup | null>(null);
-
-  // Mock OTP Flow
-  const [showOtpModal, setShowOtpModal] = useState(false);
-  const [otpValue, setOtpValue] = useState("482910");
-  const [verifiedOtp, setVerifiedOtp] = useState(false);
 
   // Grievance Form State
   const [grievanceCategory, setGrievanceCategory] = useState("compensation");
@@ -144,28 +141,32 @@ export default function CitizenPortalPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 py-10 px-4 sm:px-6">
-      <div className="max-w-4xl mx-auto space-y-6">
+    <div className="min-h-screen bg-[#fafaf9] py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden font-sans">
+      {/* Decorative ambient background */}
+      <div className="absolute top-0 right-1/4 w-96 h-96 bg-orange-100/40 rounded-full blur-3xl pointer-events-none -z-10" />
+      <div className="absolute top-1/3 left-1/4 w-80 h-80 bg-amber-100/30 rounded-full blur-3xl pointer-events-none -z-10" />
+
+      <div className="max-w-4xl mx-auto space-y-8">
         {/* ── Public Banner ─────────────────────────────────────────── */}
-        <div className="text-center space-y-2">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-xs font-bold border border-emerald-200">
-            <ShieldCheck className="h-3.5 w-3.5" />
+        <div className="text-center space-y-3 animate-fade-in">
+          <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-orange-50 text-orange-700 text-xs font-bold border border-orange-200">
+            <ShieldCheck className="h-4 w-4 text-orange-600" />
             Public Bhu-Aadhaar & RFCTLARR Status Portal
           </div>
-          <h1 className="text-2xl sm:text-3xl font-black text-slate-900">
+          <h1 className="text-3xl sm:text-4xl font-heading font-extrabold text-slate-900 tracking-tight">
             Citizen Land Acquisition Status Lookup
           </h1>
-          <p className="text-xs sm:text-sm text-slate-500 max-w-xl mx-auto">
+          <p className="text-xs sm:text-sm text-slate-500 max-w-xl mx-auto leading-relaxed">
             Check the statutory stage, compensation award, revenue record mutation, and R&R entitlements
-            for your land parcel using your 14-digit ULPIN (Unique Land Parcel Identification Number).
+            for your land parcel using your 14-digit ULPIN (Bhu-Aadhaar).
           </p>
         </div>
 
         {/* ── Search Card ───────────────────────────────────────────── */}
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
-          <div className="flex flex-col sm:flex-row gap-2">
+        <div className="bg-white/90 backdrop-blur-md rounded-2xl border border-slate-200/80 shadow-sm p-6 sm:p-8 space-y-5 animate-fade-in relative overflow-hidden">
+          <div className="flex flex-col sm:flex-row gap-2.5">
             <div className="relative flex-1">
-              <Search className="absolute left-3.5 top-3.5 h-4 w-4 text-slate-400" />
+              <Search className="absolute left-4 top-3.5 h-4 w-4 text-slate-400" />
               <input
                 type="text"
                 maxLength={14}
@@ -173,14 +174,14 @@ export default function CitizenPortalPage() {
                 value={ulpinInput}
                 onChange={(e) => setUlpinInput(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleLookup()}
-                className="w-full pl-10 pr-4 py-3 text-sm rounded-xl border border-slate-300 font-mono tracking-wider focus:outline-none focus:ring-2 focus:ring-slate-900"
+                className="w-full pl-11 pr-4 py-3 text-sm rounded-xl border border-slate-200 bg-slate-50/60 focus:bg-white font-mono tracking-wider focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all placeholder:text-slate-400"
               />
             </div>
 
             <button
               onClick={() => handleLookup()}
               disabled={loading}
-              className="px-6 py-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-all shadow-sm flex items-center justify-center gap-2 disabled:opacity-50"
+              className="px-6 py-3 rounded-xl bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 text-white text-xs font-semibold uppercase tracking-wider font-mono shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
             >
               {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
               Verify Status
@@ -188,7 +189,7 @@ export default function CitizenPortalPage() {
           </div>
 
           {/* Demo Quick Chips */}
-          <div className="flex flex-wrap items-center gap-2 text-xs pt-1">
+          <div className="flex flex-wrap items-center gap-2 text-xs pt-1 border-t border-slate-100">
             <span className="text-slate-400 font-medium">Quick Demo Samples:</span>
             {DEMO_ULPINS.map((chip) => (
               <button
@@ -197,7 +198,7 @@ export default function CitizenPortalPage() {
                   setUlpinInput(chip.ulpin);
                   handleLookup(chip.ulpin);
                 }}
-                className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-mono text-[11px] transition-colors border border-slate-200"
+                className="px-3 py-1 rounded-lg bg-orange-50 hover:bg-orange-100/80 text-orange-800 font-mono text-[11px] transition-colors border border-orange-200/60 cursor-pointer"
               >
                 {chip.ulpin} ({chip.label})
               </button>
@@ -205,35 +206,41 @@ export default function CitizenPortalPage() {
           </div>
 
           {error && (
-            <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-xs text-red-700 flex items-center gap-2">
-              <AlertCircle className="h-4 w-4 shrink-0" />
+            <div className="p-3.5 rounded-xl bg-red-50 border border-red-200 text-xs text-red-700 flex items-center gap-2.5 font-medium animate-fade-in">
+              <AlertCircle className="h-4 w-4 shrink-0 text-red-500" />
               {error}
             </div>
           )}
         </div>
 
         {/* ── Project Search (Public) ──────────────────────────────────── */}
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
-          <div className="flex items-center gap-2">
-            <Building2 className="h-4 w-4 text-amber-600" />
-            <h2 className="text-sm font-bold text-slate-800">Search Projects by Name or District</h2>
+        <div className="bg-white/80 backdrop-blur-md rounded-2xl border border-slate-200/80 shadow-sm p-6 sm:p-8 space-y-4 animate-fade-in">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center">
+              <Building2 className="h-4 w-4" />
+            </div>
+            <div>
+              <h2 className="text-sm font-heading font-bold text-slate-900">Search Corridors by Name or District</h2>
+              <p className="text-[11px] text-slate-400">Discover public infrastructure alignments in your district</p>
+            </div>
           </div>
-          <div className="flex flex-col sm:flex-row gap-2">
+
+          <div className="flex flex-col sm:flex-row gap-2.5">
             <div className="relative flex-1">
-              <Search className="absolute left-3.5 top-3.5 h-4 w-4 text-slate-400" />
+              <Search className="absolute left-4 top-3.5 h-4 w-4 text-slate-400" />
               <input
                 type="text"
-                placeholder="e.g. NH-48, Nashik, Highway Authority…"
+                placeholder="e.g. NH-48, Nashik, Expressway, Highway Authority…"
                 value={projectQuery}
                 onChange={(e) => setProjectQuery(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleProjectSearch()}
-                className="w-full pl-10 pr-4 py-3 text-sm rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                className="w-full pl-11 pr-4 py-2.5 text-xs rounded-xl border border-slate-200 bg-slate-50/60 focus:bg-white focus:outline-none focus:border-orange-500 transition-all text-slate-700"
               />
             </div>
             <button
               onClick={handleProjectSearch}
               disabled={searchingProjects}
-              className="px-6 py-3 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold transition-all shadow-sm flex items-center justify-center gap-2 disabled:opacity-50"
+              className="px-5 py-2.5 rounded-xl bg-white border border-slate-200 hover:border-orange-300 hover:bg-orange-50 hover:text-orange-700 text-slate-700 text-xs font-semibold transition-all shadow-sm flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
             >
               {searchingProjects ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
               Search
@@ -248,29 +255,29 @@ export default function CitizenPortalPage() {
           )}
 
           {projectResults.length > 0 && (
-            <div className="space-y-2 max-h-64 overflow-y-auto">
+            <div className="space-y-2.5 max-h-64 overflow-y-auto pt-2">
               {projectResults.map((p) => (
-                <div key={p.id} className="flex items-center justify-between p-3 rounded-xl border border-slate-100 hover:border-amber-300 hover:bg-amber-50 transition-colors">
+                <div key={p.id} className="flex items-center justify-between p-4 rounded-xl border border-slate-100 hover:border-orange-200 hover:bg-orange-50/30 transition-all">
                   <div className="flex-1 min-w-0">
-                    <div className="font-semibold text-sm text-slate-800 truncate">{p.name}</div>
-                    <div className="text-xs text-slate-500 mt-0.5">
-                      {p.land_requiring_body} · {p.district}, {p.state}
+                    <div className="font-heading font-bold text-xs text-slate-900 truncate">{p.name}</div>
+                    <div className="text-[11px] text-slate-500 mt-0.5">
+                      {p.land_requiring_body} · <span className="font-medium text-slate-700">{p.district}, {p.state}</span>
                     </div>
-                    <div className="flex items-center gap-2 mt-1">
-                      <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${
-                        p.status_flag === "green" ? "bg-green-100 text-green-700"
-                        : p.status_flag === "amber" ? "bg-amber-100 text-amber-700"
-                        : p.status_flag === "red" ? "bg-red-100 text-red-700"
-                        : "bg-purple-100 text-purple-700"
+                    <div className="flex items-center gap-2 mt-1.5">
+                      <span className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-full border ${
+                        p.status_flag === "green" ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                        : p.status_flag === "amber" ? "bg-amber-50 text-amber-700 border-amber-200"
+                        : p.status_flag === "red" ? "bg-red-50 text-red-700 border-red-200"
+                        : "bg-purple-50 text-purple-700 border-purple-200"
                       }`}>
                         {p.status_flag?.toUpperCase()}
                       </span>
-                      <span className="text-[10px] text-slate-400">Risk: {p.risk_score}</span>
+                      <span className="text-[10px] text-slate-400 font-mono">Risk: {p.risk_score}</span>
                     </div>
                   </div>
                   <a
                     href={`/workflow/${p.id}`}
-                    className="ml-3 shrink-0 text-xs font-semibold text-amber-600 hover:text-amber-700 underline underline-offset-2"
+                    className="ml-3 shrink-0 text-xs font-semibold text-orange-600 hover:text-orange-700"
                   >
                     View Details →
                   </a>
@@ -278,37 +285,33 @@ export default function CitizenPortalPage() {
               ))}
             </div>
           )}
-
-          {!searchingProjects && projectResults.length === 0 && !projectSearchError && projectQuery.length >= 2 && (
-            <p className="text-xs text-slate-400 text-center py-2">No projects found matching &ldquo;{projectQuery}&rdquo;</p>
-          )}
         </div>
 
         {/* ── Scoped Parcel Status Card (ZERO PII LEAKS) ─────────────── */}
         {parcelData && (
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden space-y-6 animate-fade-in p-6">
+          <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden space-y-6 animate-fade-in p-6 sm:p-8">
             {/* Header / Identity */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-5">
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-mono font-bold px-2.5 py-0.5 rounded bg-emerald-100 text-emerald-800 border border-emerald-200">
+                  <span className="text-xs font-mono font-bold px-2.5 py-0.5 rounded-full bg-orange-50 text-orange-700 border border-orange-200">
                     ULPIN: {parcelData.ulpin}
                   </span>
-                  <span className="text-xs font-semibold px-2 py-0.5 rounded bg-slate-100 text-slate-600">
+                  <span className="text-xs font-semibold px-2 py-0.5 rounded-md bg-slate-100 text-slate-600">
                     Survey {parcelData.survey_number}
                   </span>
                 </div>
-                <h2 className="text-lg font-bold text-slate-900 mt-1">
+                <h2 className="text-xl font-heading font-extrabold text-slate-900 mt-2">
                   {parcelData.village}, {parcelData.district}, {parcelData.state}
                 </h2>
-                <div className="text-xs text-slate-500 mt-0.5">
-                  Project: <strong>{parcelData.project_name}</strong> · Area: <strong>{parcelData.area_hectares} hectares</strong> ({parcelData.land_type})
+                <div className="text-xs text-slate-500 mt-1">
+                  Corridor: <strong className="text-slate-700">{parcelData.project_name}</strong> · Area: <strong className="font-mono text-slate-700">{parcelData.area_hectares} ha</strong> ({parcelData.land_type})
                 </div>
               </div>
 
               <div className="text-left sm:text-right">
-                <div className="text-[10px] uppercase font-semibold text-slate-400">Statutory Stage</div>
-                <div className="text-xs font-bold text-amber-800 bg-amber-50 border border-amber-200 px-3 py-1 rounded-full mt-0.5 inline-block">
+                <div className="text-[10px] uppercase font-mono font-semibold text-slate-400">Statutory Stage</div>
+                <div className="text-xs font-heading font-bold text-orange-700 bg-orange-50 border border-orange-200 px-3.5 py-1 rounded-full mt-1 inline-block">
                   {parcelData.stage_label}
                 </div>
               </div>
@@ -317,19 +320,19 @@ export default function CitizenPortalPage() {
             {/* 4 Entitlement Status Tiles */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {/* Tile 1: Compensation Award Status */}
-              <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/50 space-y-2">
+              <div className="p-5 rounded-2xl border border-slate-100 bg-slate-50/60 space-y-2.5">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                  <span className="text-xs font-bold text-slate-800 flex items-center gap-2">
                     <Banknote className="h-4 w-4 text-emerald-600" />
                     Compensation Award (RFCTLARR §23)
                   </span>
                   <span
-                    className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                    className={`px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase ${
                       parcelData.compensation_status === "disbursed"
-                        ? "bg-emerald-100 text-emerald-800"
+                        ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
                         : parcelData.compensation_status === "sanctioned"
-                        ? "bg-blue-100 text-blue-800"
-                        : "bg-amber-100 text-amber-800"
+                        ? "bg-blue-50 text-blue-700 border border-blue-200"
+                        : "bg-amber-50 text-amber-700 border border-amber-200"
                     }`}
                   >
                     {parcelData.compensation_status || (parcelData.has_award ? "Assessed" : "Pending Award")}
@@ -339,9 +342,9 @@ export default function CitizenPortalPage() {
                 <div className="text-xs text-slate-600">
                   {parcelData.compensation_assessed ? (
                     <div>
-                      Assessed Entitlement: <strong className="text-slate-900 font-mono">₹{parcelData.compensation_assessed.toLocaleString("en-IN")}</strong>
+                      Assessed Entitlement: <strong className="text-slate-900 font-mono font-bold">₹{parcelData.compensation_assessed.toLocaleString("en-IN")}</strong>
                       {parcelData.disbursed_on && (
-                        <div className="text-[11px] text-emerald-700 font-medium mt-0.5">
+                        <div className="text-[11px] text-emerald-700 font-medium mt-1">
                           ✓ Direct benefit transfer disbursed on {parcelData.disbursed_on}
                         </div>
                       )}
@@ -353,19 +356,19 @@ export default function CitizenPortalPage() {
               </div>
 
               {/* Tile 2: Revenue Record Mutation */}
-              <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/50 space-y-2">
+              <div className="p-5 rounded-2xl border border-slate-100 bg-slate-50/60 space-y-2.5">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                  <span className="text-xs font-bold text-slate-800 flex items-center gap-2">
                     <Landmark className="h-4 w-4 text-blue-600" />
                     Revenue Record Title Mutation
                   </span>
                   <span
-                    className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                    className={`px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase ${
                       parcelData.mutation_status === "completed"
-                        ? "bg-emerald-100 text-emerald-800"
+                        ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
                         : parcelData.mutation_status === "filed"
-                        ? "bg-blue-100 text-blue-800"
-                        : "bg-slate-200 text-slate-700"
+                        ? "bg-blue-50 text-blue-700 border border-blue-200"
+                        : "bg-slate-100 text-slate-600 border border-slate-200"
                     }`}
                   >
                     {parcelData.mutation_status}
@@ -390,42 +393,42 @@ export default function CitizenPortalPage() {
               </div>
 
               {/* Tile 3: R&R Resettlement Entitlements (ANONYMIZED) */}
-              <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/50 space-y-2 sm:col-span-2">
+              <div className="p-5 rounded-2xl border border-slate-100 bg-slate-50/60 space-y-2.5 sm:col-span-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                  <span className="text-xs font-bold text-slate-800 flex items-center gap-2">
                     <Users className="h-4 w-4 text-purple-600" />
                     Associated Family R&R Entitlement Status
                   </span>
                   {parcelData.family_ref && (
-                    <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-purple-100 text-purple-800 font-bold">
+                    <span className="text-[10px] font-mono px-2.5 py-0.5 rounded-full bg-purple-50 text-purple-700 border border-purple-200 font-bold">
                       Ref: {parcelData.family_ref}
                     </span>
                   )}
                 </div>
 
                 {parcelData.family_ref ? (
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1 text-xs">
-                    <div className="bg-white p-2 rounded-lg border border-slate-200">
-                      <div className="text-[10px] text-slate-400 uppercase font-semibold">Displacement</div>
-                      <div className="font-bold text-slate-800 mt-0.5">{parcelData.displaced ? "Displaced" : "Non-Displaced"}</div>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-1 text-xs">
+                    <div className="bg-white p-3 rounded-xl border border-slate-200/70">
+                      <div className="text-[10px] text-slate-400 uppercase font-mono font-semibold">Displacement</div>
+                      <div className="font-bold text-slate-800 mt-1">{parcelData.displaced ? "Displaced" : "Non-Displaced"}</div>
                     </div>
-                    <div className="bg-white p-2 rounded-lg border border-slate-200">
-                      <div className="text-[10px] text-slate-400 uppercase font-semibold">Housing Allotment</div>
-                      <div className="font-bold text-slate-800 mt-0.5 capitalize">{parcelData.housing_status || "Pending"}</div>
+                    <div className="bg-white p-3 rounded-xl border border-slate-200/70">
+                      <div className="text-[10px] text-slate-400 uppercase font-mono font-semibold">Housing Allotment</div>
+                      <div className="font-bold text-slate-800 mt-1 capitalize">{parcelData.housing_status || "Pending"}</div>
                     </div>
-                    <div className="bg-white p-2 rounded-lg border border-slate-200">
-                      <div className="text-[10px] text-slate-400 uppercase font-semibold">Employment Status</div>
-                      <div className="font-bold text-slate-800 mt-0.5 capitalize">{parcelData.employment_status || "Pending"}</div>
+                    <div className="bg-white p-3 rounded-xl border border-slate-200/70">
+                      <div className="text-[10px] text-slate-400 uppercase font-mono font-semibold">Employment Status</div>
+                      <div className="font-bold text-slate-800 mt-1 capitalize">{parcelData.employment_status || "Pending"}</div>
                     </div>
-                    <div className="bg-white p-2 rounded-lg border border-slate-200">
-                      <div className="text-[10px] text-slate-400 uppercase font-semibold">Livelihood Restored</div>
-                      <div className={`font-bold mt-0.5 ${parcelData.livelihood_restored ? "text-emerald-700" : "text-amber-700"}`}>
+                    <div className="bg-white p-3 rounded-xl border border-slate-200/70">
+                      <div className="text-[10px] text-slate-400 uppercase font-mono font-semibold">Livelihood Restored</div>
+                      <div className={`font-bold mt-1 ${parcelData.livelihood_restored ? "text-emerald-700" : "text-amber-700"}`}>
                         {parcelData.livelihood_restored ? "✓ Restored" : "In Progress"}
                       </div>
                     </div>
                   </div>
                 ) : (
-                  <p className="text-xs text-slate-500">
+                  <p className="text-xs text-slate-400">
                     No project-affected family recorded for this parcel or non-residential land.
                   </p>
                 )}
@@ -433,26 +436,26 @@ export default function CitizenPortalPage() {
             </div>
 
             {/* ── Grievance Submission Form ─────────────────────────────── */}
-            <div className="border-t border-slate-100 pt-5 space-y-3">
+            <div className="border-t border-slate-100 pt-6 space-y-4">
               <div className="flex items-center gap-2">
-                <HelpCircle className="h-4 w-4 text-amber-600" />
-                <h3 className="text-sm font-bold text-slate-900">
+                <HelpCircle className="h-4 w-4 text-orange-600" />
+                <h3 className="text-sm font-heading font-bold text-slate-900">
                   Submit Statutory Grievance to District Collector
                 </h3>
               </div>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-slate-500 leading-relaxed">
                 Notice an area discrepancy, delayed disbursement, or unfulfilled R&R entitlement?
                 Your grievance is recorded in the official compliance audit log and forwarded to the Land Acquisition Officer.
               </p>
 
-              <form onSubmit={handleGrievanceSubmit} className="space-y-3">
+              <form onSubmit={handleGrievanceSubmit} className="space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <label className="text-[11px] font-semibold text-slate-700 block mb-1">Grievance Category</label>
                     <select
                       value={grievanceCategory}
                       onChange={(e) => setGrievanceCategory(e.target.value)}
-                      className="w-full px-3 py-2 text-xs rounded-lg border border-slate-300 bg-white"
+                      className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 bg-white focus:border-orange-500 focus:outline-none"
                     >
                       <option value="compensation">Delayed Compensation Disbursement</option>
                       <option value="discrepancy">Area / Survey Number Discrepancy</option>
@@ -471,18 +474,18 @@ export default function CitizenPortalPage() {
                     placeholder="Describe the issue with your parcel, compensation, or entitlements…"
                     value={grievanceMessage}
                     onChange={(e) => setGrievanceMessage(e.target.value)}
-                    className="w-full p-3 text-xs rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-slate-900"
+                    className="w-full p-3 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all"
                   />
                 </div>
 
-                <div className="flex items-center justify-between">
-                  <span className="text-[11px] text-slate-400">
-                    Grievance will be automatically tied to ULPIN {parcelData.ulpin}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <span className="text-[11px] text-slate-400 font-mono">
+                    Grievance will be tied to ULPIN {parcelData.ulpin}
                   </span>
                   <button
                     type="submit"
                     disabled={submittingGrievance || !grievanceMessage.trim()}
-                    className="px-4 py-2 rounded-lg bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold shadow-sm flex items-center gap-1.5 disabled:opacity-50 transition-all"
+                    className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 text-white text-xs font-semibold shadow-sm flex items-center justify-center gap-2 disabled:opacity-50 transition-all cursor-pointer"
                   >
                     {submittingGrievance ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
                     Register Grievance
@@ -491,7 +494,7 @@ export default function CitizenPortalPage() {
               </form>
 
               {grievanceResult && (
-                <div className="p-3 rounded-lg bg-emerald-50 border border-emerald-200 text-xs font-medium text-emerald-800">
+                <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-xs font-medium text-emerald-800 animate-fade-in">
                   ✓ {grievanceResult}
                 </div>
               )}

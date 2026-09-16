@@ -54,69 +54,76 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-amber-50 via-white to-green-50 flex items-center justify-center px-4">
-      <div className="w-full max-w-md">
+    <div className="min-h-screen relative flex items-center justify-center px-4 overflow-hidden">
+      {/* Background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-emerald-50/40 via-white to-orange-50/30" />
+      <div className="absolute inset-0 bg-dots opacity-30" />
+
+      <div className="relative w-full max-w-md animate-fade-in-scale">
         {/* Logo */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-500 to-green-600 text-white text-2xl font-black mb-3">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-400 to-emerald-600 text-white text-2xl font-black mb-4 shadow-lg animate-float">
             भ
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">BhoomiSetu</h1>
-          <p className="text-sm text-gray-500 mt-1">Create a Citizen account</p>
+          <h1 className="text-2xl font-heading font-extrabold text-foreground">
+            <span className="text-orange-600">Bhoomi</span>
+            <span className="text-emerald-700">Setu</span>
+          </h1>
+          <p className="text-sm text-muted-foreground mt-1">Create a Citizen account</p>
         </div>
 
         {/* Register Form */}
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
-          <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="glass-card rounded-2xl p-7 shadow-lg">
+          <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label className="text-xs font-medium text-gray-600 mb-1 block">Full Name (optional)</label>
+              <label className="text-xs font-semibold font-label text-muted-foreground mb-1.5 block uppercase tracking-wider">Full Name (optional)</label>
               <input
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Your name"
-                className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-400"
+                className="input-premium"
               />
             </div>
 
             <div>
-              <label className="text-xs font-medium text-gray-600 mb-1 block">Email</label>
+              <label className="text-xs font-semibold font-label text-muted-foreground mb-1.5 block uppercase tracking-wider">Email</label>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@example.com"
                 required
-                className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-400"
+                className="input-premium font-label"
               />
             </div>
 
             <div>
-              <label className="text-xs font-medium text-gray-600 mb-1 block">Password</label>
+              <label className="text-xs font-semibold font-label text-muted-foreground mb-1.5 block uppercase tracking-wider">Password</label>
               <input
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="At least 6 characters"
                 required
-                className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-400"
+                className="input-premium"
               />
             </div>
 
             <div>
-              <label className="text-xs font-medium text-gray-600 mb-1 block">Confirm Password</label>
+              <label className="text-xs font-semibold font-label text-muted-foreground mb-1.5 block uppercase tracking-wider">Confirm Password</label>
               <input
                 type="password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="Repeat password"
                 required
-                className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-400"
+                className="input-premium"
               />
             </div>
 
             {error && (
-              <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-xs text-red-700 flex items-center gap-2">
+              <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-xs text-red-700 flex items-center gap-2 animate-fade-in">
                 <AlertCircle className="h-4 w-4 shrink-0" />
                 {error}
               </div>
@@ -125,7 +132,8 @@ export default function RegisterPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 rounded-xl bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white text-sm font-bold transition-all shadow-sm flex items-center justify-center gap-2 disabled:opacity-50"
+              className="btn-primary w-full py-3 text-sm disabled:opacity-50 cursor-pointer !bg-gradient-to-r !from-emerald-500 !to-emerald-600 hover:!from-emerald-600 hover:!to-emerald-700"
+              style={{ background: 'linear-gradient(135deg, #10B981, #059669)' }}
             >
               {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <UserPlus className="h-4 w-4" />}
               Create Account
@@ -134,9 +142,9 @@ export default function RegisterPage() {
         </div>
 
         {/* Login Link */}
-        <p className="text-center text-sm text-gray-500 mt-4">
+        <p className="text-center text-sm text-muted-foreground mt-5">
           Already have an account?{" "}
-          <Link href="/login" className="font-semibold text-amber-600 hover:text-amber-700 underline underline-offset-2">
+          <Link href="/login" className="font-semibold text-orange-600 hover:text-orange-700 underline underline-offset-2 transition-colors">
             Sign In
           </Link>
         </p>

@@ -8,6 +8,7 @@
  *   - Per-entity "Why is this risky?" explainability breakdown panel
  *   - "Policy Simulation Mode" with live weight sliders (does not alter stored DB values)
  *   - Single-entity and batch recompute capabilities
+ *   - Redesigned with White + Warm Orange palette, Sora & Space Grotesk typography
  */
 
 import { useState, useMemo, useEffect } from "react";
@@ -445,125 +446,129 @@ export default function RiskConsolePage() {
   const lowRiskCount = rawEntities.filter((e) => e.score < 30).length;
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      {/* ── Top Header ─────────────────────────────────────────────── */}
-      <div className="border-b border-slate-200 bg-white px-6 py-5">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2.5">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-red-50 text-red-600 ring-1 ring-red-200">
-                <ShieldAlert className="h-5 w-5" />
+    <div className="min-h-screen bg-[#fafaf9] py-8 px-4 sm:px-6 lg:px-8 relative overflow-hidden font-sans">
+      {/* Ambient background glow */}
+      <div className="absolute top-0 right-10 w-96 h-96 bg-orange-100/40 rounded-full blur-3xl pointer-events-none -z-10" />
+
+      <div className="max-w-7xl mx-auto space-y-6">
+        {/* ── Top Header ─────────────────────────────────────────────── */}
+        <div className="bg-white/80 backdrop-blur-md rounded-2xl border border-slate-200/80 p-6 shadow-sm relative overflow-hidden animate-fade-in">
+          <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-gradient-to-b from-orange-500 to-amber-500" />
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex items-start gap-4">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-orange-500 to-amber-600 text-white shadow-md shadow-orange-500/20 shrink-0">
+                <ShieldAlert className="h-6 w-6" />
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <h1 className="text-xl font-bold text-slate-900">
-                    Risk & Decision Support Console
-                  </h1>
-                  <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-600 border border-slate-200">
+                  <span className="inline-flex items-center gap-1 text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-orange-50 text-orange-700 border border-orange-200">
+                    <Sparkles className="w-3 h-3 text-orange-500" />
+                    Explainable AI Engine
+                  </span>
+                  <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-[11px] font-mono font-semibold text-slate-600 border border-slate-200">
                     RFCTLARR §11–44
                   </span>
                 </div>
-                <p className="text-xs text-slate-500 mt-0.5">
-                  Explainable, rule-based risk scoring with statutory deadline tracking and Policy Simulation Mode
+                <h1 className="text-2xl sm:text-3xl font-heading font-extrabold text-slate-900 tracking-tight mt-1">
+                  Risk & Decision Support Console
+                </h1>
+                <p className="text-xs sm:text-sm text-slate-500 mt-1">
+                  Multi-factor explainable statutory risk assessment, policy simulator, and legal dispute tracking.
                 </p>
               </div>
             </div>
-          </div>
 
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => setSimulationMode(!simulationMode)}
-              className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-semibold transition-all shadow-sm ${
-                simulationMode
-                  ? "bg-amber-500 text-white ring-2 ring-amber-300 shadow-amber-100"
-                  : "bg-white text-slate-700 border border-slate-300 hover:bg-slate-50"
-              }`}
-            >
-              <Sliders className="h-3.5 w-3.5" />
-              {simulationMode ? "Simulation Active" : "Policy Simulation Mode"}
-            </button>
-
-            <button
-              onClick={handleBatchRecompute}
-              disabled={isRecomputing}
-              className="flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-semibold text-white bg-slate-900 hover:bg-slate-800 disabled:opacity-50 transition-all shadow-sm"
-            >
-              <RefreshCw className={`h-3.5 w-3.5 ${isRecomputing ? "animate-spin" : ""}`} />
-              Recompute All
-            </button>
-          </div>
-        </div>
-
-        {/* Feedback alert */}
-        {recomputeFeedback && (
-          <div className="max-w-7xl mx-auto mt-3">
-            <div className="px-4 py-2 rounded-lg text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200 flex items-center justify-between">
-              <span>{recomputeFeedback}</span>
+            <div className="flex items-center gap-3 self-start md:self-auto">
               <button
-                onClick={() => setRecomputeFeedback(null)}
-                className="text-blue-500 hover:text-blue-700 font-bold"
+                onClick={() => setSimulationMode(!simulationMode)}
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                  simulationMode
+                    ? "bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-md shadow-orange-500/20"
+                    : "bg-white text-slate-700 border border-slate-200 hover:border-orange-300 hover:bg-orange-50/50 hover:text-orange-700 shadow-sm"
+                }`}
               >
-                ✕
+                <Sliders className="h-3.5 w-3.5" />
+                {simulationMode ? "Simulation Active" : "Policy Simulation Mode"}
+              </button>
+
+              <button
+                onClick={handleBatchRecompute}
+                disabled={isRecomputing}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold text-white bg-slate-900 hover:bg-slate-800 disabled:opacity-50 transition-all shadow-sm cursor-pointer"
+              >
+                <RefreshCw className={`h-3.5 w-3.5 ${isRecomputing ? "animate-spin" : ""}`} />
+                Recompute All
               </button>
             </div>
           </div>
-        )}
-      </div>
 
-      {/* ── KPI Metrics Bar ────────────────────────────────────────── */}
-      <div className="border-b border-slate-200 bg-white/70 px-6 py-3">
-        <div className="max-w-7xl mx-auto grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <div className="flex items-center gap-3 p-2 rounded-lg bg-slate-50 border border-slate-200/60">
-            <div className="h-8 w-8 rounded-lg bg-slate-200/80 flex items-center justify-center text-slate-700">
-              <Scale className="h-4 w-4" />
+          {/* Feedback alert */}
+          {recomputeFeedback && (
+            <div className="mt-4 pt-4 border-t border-slate-100 animate-fade-in">
+              <div className="px-4 py-2.5 rounded-xl text-xs font-medium bg-orange-50 text-orange-800 border border-orange-200 flex items-center justify-between">
+                <span>{recomputeFeedback}</span>
+                <button
+                  onClick={() => setRecomputeFeedback(null)}
+                  className="text-orange-600 hover:text-orange-800 font-bold p-1"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* ── KPI Metrics Bar ────────────────────────────────────────── */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 animate-fade-in">
+          <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex items-center gap-3">
+            <div className="h-10 w-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-700 shrink-0">
+              <Scale className="h-5 w-5" />
             </div>
             <div>
-              <div className="text-xs text-slate-500 font-medium">Entities Assessed</div>
-              <div className="text-base font-bold text-slate-800">{rawEntities.length}</div>
+              <div className="text-xs text-slate-400 font-mono">Assessed Entities</div>
+              <div className="text-xl font-heading font-bold text-slate-900">{rawEntities.length}</div>
             </div>
           </div>
 
-          <div className="flex items-center gap-3 p-2 rounded-lg bg-red-50/70 border border-red-200/70">
-            <div className="h-8 w-8 rounded-lg bg-red-100 flex items-center justify-center text-red-700">
-              <AlertTriangle className="h-4 w-4" />
+          <div className="bg-white p-4 rounded-2xl border border-red-200/80 shadow-sm flex items-center gap-3">
+            <div className="h-10 w-10 rounded-xl bg-red-50 flex items-center justify-center text-red-600 shrink-0">
+              <AlertTriangle className="h-5 w-5" />
             </div>
             <div>
-              <div className="text-xs text-red-600 font-medium">High Risk (≥60)</div>
-              <div className="text-base font-bold text-red-700">{highRiskCount}</div>
+              <div className="text-xs text-red-500 font-mono">Critical (≥60)</div>
+              <div className="text-xl font-heading font-bold text-red-600">{highRiskCount}</div>
             </div>
           </div>
 
-          <div className="flex items-center gap-3 p-2 rounded-lg bg-amber-50/70 border border-amber-200/70">
-            <div className="h-8 w-8 rounded-lg bg-amber-100 flex items-center justify-center text-amber-700">
-              <Clock className="h-4 w-4" />
+          <div className="bg-white p-4 rounded-2xl border border-amber-200/80 shadow-sm flex items-center gap-3">
+            <div className="h-10 w-10 rounded-xl bg-amber-50 flex items-center justify-center text-amber-600 shrink-0">
+              <Clock className="h-5 w-5" />
             </div>
             <div>
-              <div className="text-xs text-amber-600 font-medium">Moderate (30–60)</div>
-              <div className="text-base font-bold text-amber-700">{mediumRiskCount}</div>
+              <div className="text-xs text-amber-500 font-mono">Moderate (30–60)</div>
+              <div className="text-xl font-heading font-bold text-amber-600">{mediumRiskCount}</div>
             </div>
           </div>
 
-          <div className="flex items-center gap-3 p-2 rounded-lg bg-emerald-50/70 border border-emerald-200/70">
-            <div className="h-8 w-8 rounded-lg bg-emerald-100 flex items-center justify-center text-emerald-700">
-              <CheckCircle2 className="h-4 w-4" />
+          <div className="bg-white p-4 rounded-2xl border border-emerald-200/80 shadow-sm flex items-center gap-3">
+            <div className="h-10 w-10 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600 shrink-0">
+              <CheckCircle2 className="h-5 w-5" />
             </div>
             <div>
-              <div className="text-xs text-emerald-600 font-medium">Compliant (&lt;30)</div>
-              <div className="text-base font-bold text-emerald-700">{lowRiskCount}</div>
+              <div className="text-xs text-emerald-500 font-mono">Low Risk (&lt;30)</div>
+              <div className="text-xl font-heading font-bold text-emerald-600">{lowRiskCount}</div>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* ── Main Two-Column Layout ──────────────────────────────────── */}
-      <div className="max-w-7xl mx-auto px-6 py-6">
+        {/* ── Main Two-Column Layout ──────────────────────────────────── */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
           {/* ─────────────────────────────────────────────────────────── */}
           {/* LEFT COLUMN: Entities Table & Filters (7 cols)               */}
           {/* ─────────────────────────────────────────────────────────── */}
-          <div className="lg:col-span-7 bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+          <div className="lg:col-span-7 bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden flex flex-col">
             {/* Table Toolbar */}
-            <div className="p-4 border-b border-slate-200 bg-slate-50/60 flex flex-col sm:flex-row gap-3 items-center justify-between">
+            <div className="p-4 border-b border-slate-100 bg-slate-50/60 flex flex-col sm:flex-row gap-3 items-center justify-between">
               <div className="relative w-full sm:w-64">
                 <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
                 <input
@@ -571,20 +576,20 @@ export default function RiskConsolePage() {
                   placeholder="Search entity, ULPIN, district…"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-9 pr-3 py-1.5 text-xs rounded-lg border border-slate-300 bg-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent"
+                  className="w-full pl-9 pr-3 py-2 text-xs rounded-xl border border-slate-200 bg-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all"
                 />
               </div>
 
               <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
                 {/* Type toggle */}
-                <div className="inline-flex rounded-lg border border-slate-200 bg-white p-0.5 text-xs">
+                <div className="inline-flex rounded-xl border border-slate-200 bg-slate-100/80 p-1 text-xs font-medium">
                   {(["all", "project", "parcel"] as const).map((t) => (
                     <button
                       key={t}
                       onClick={() => setTypeFilter(t)}
-                      className={`px-2.5 py-1 rounded-md capitalize font-medium transition-colors ${
+                      className={`px-3 py-1 rounded-lg capitalize transition-all ${
                         typeFilter === t
-                          ? "bg-slate-900 text-white"
+                          ? "bg-white text-slate-900 shadow-sm font-semibold"
                           : "text-slate-600 hover:text-slate-900"
                       }`}
                     >
@@ -597,7 +602,7 @@ export default function RiskConsolePage() {
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value as any)}
-                  className="px-2.5 py-1.5 text-xs rounded-lg border border-slate-300 bg-white text-slate-700 font-medium focus:outline-none focus:ring-2 focus:ring-slate-900"
+                  className="px-3 py-2 text-xs rounded-xl border border-slate-200 bg-white text-slate-700 font-medium focus:outline-none focus:border-orange-500"
                 >
                   <option value="score_desc">Highest Risk First</option>
                   <option value="score_asc">Lowest Risk First</option>
@@ -609,7 +614,7 @@ export default function RiskConsolePage() {
             {/* Entity List Table */}
             <div className="divide-y divide-slate-100 max-h-[640px] overflow-y-auto">
               {filteredEntities.length === 0 ? (
-                <div className="p-8 text-center text-xs text-slate-500">
+                <div className="p-12 text-center text-xs text-slate-400">
                   No entities found matching your filters.
                 </div>
               ) : (
@@ -621,33 +626,33 @@ export default function RiskConsolePage() {
                     <div
                       key={item.entity_id}
                       onClick={() => setSelectedId(item.entity_id)}
-                      className={`p-3.5 transition-colors cursor-pointer flex items-center justify-between gap-3 ${
+                      className={`p-4 transition-all duration-200 cursor-pointer flex items-center justify-between gap-3 border-l-4 ${
                         isSelected
-                          ? "bg-slate-100/90 border-l-4 border-slate-900"
-                          : "hover:bg-slate-50/80 border-l-4 border-transparent"
+                          ? "bg-orange-50/50 border-orange-500 shadow-inner"
+                          : "hover:bg-slate-50/70 border-transparent"
                       }`}
                     >
                       <div className="flex items-start gap-3 min-w-0">
                         <div
-                          className={`mt-0.5 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg text-xs font-semibold ${
+                          className={`mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-xl text-xs font-semibold ${
                             item.entity_type === "project"
-                              ? "bg-blue-100 text-blue-800"
-                              : "bg-purple-100 text-purple-800"
+                              ? "bg-orange-100 text-orange-700"
+                              : "bg-purple-100 text-purple-700"
                           }`}
                         >
                           {item.entity_type === "project" ? (
-                            <Building2 className="h-3.5 w-3.5" />
+                            <Building2 className="h-4 w-4" />
                           ) : (
-                            <MapPin className="h-3.5 w-3.5" />
+                            <MapPin className="h-4 w-4" />
                           )}
                         </div>
 
                         <div className="min-w-0">
                           <div className="flex items-center gap-2">
-                            <span className="text-xs font-bold text-slate-900 truncate">
+                            <span className="text-xs font-heading font-bold text-slate-900 truncate">
                               {item.title}
                             </span>
-                            <span className="text-[10px] uppercase font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-200">
+                            <span className="text-[10px] uppercase font-mono font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-200">
                               {item.entity_type}
                             </span>
                           </div>
@@ -658,8 +663,8 @@ export default function RiskConsolePage() {
 
                           {/* Top risk reason teaser */}
                           {item.reasons && item.reasons.length > 0 && (
-                            <div className="flex items-center gap-1.5 text-[10px] text-slate-600 mt-1">
-                              <span className="font-semibold text-slate-700">Top Driver:</span>
+                            <div className="flex items-center gap-1.5 text-[10px] text-slate-500 mt-1">
+                              <span className="font-semibold text-slate-700">Driver:</span>
                               <span className="truncate max-w-[280px]">
                                 {item.reasons.find((r) => r.score > 0)?.label || "Statutory Compliance"}
                               </span>
@@ -672,18 +677,18 @@ export default function RiskConsolePage() {
                       <div className="flex items-center gap-2 flex-shrink-0">
                         <div className="text-right">
                           <div
-                            className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-extrabold ${
+                            className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-mono font-black ${
                               cat === "high"
-                                ? "bg-red-100 text-red-800 border border-red-200"
+                                ? "bg-red-50 text-red-700 border border-red-200"
                                 : cat === "medium"
-                                ? "bg-amber-100 text-amber-800 border border-amber-200"
-                                : "bg-emerald-100 text-emerald-800 border border-emerald-200"
+                                ? "bg-amber-50 text-amber-700 border border-amber-200"
+                                : "bg-emerald-50 text-emerald-700 border border-emerald-200"
                             }`}
                           >
                             <span>{item.score.toFixed(1)}</span>
-                            <span className="text-[10px] font-medium opacity-75">/100</span>
+                            <span className="text-[10px] font-normal opacity-75">/100</span>
                           </div>
-                          <div className="text-[9px] text-slate-400 mt-0.5 capitalize">
+                          <div className="text-[9px] text-slate-400 mt-0.5 capitalize font-mono">
                             {cat} Risk
                           </div>
                         </div>
@@ -702,18 +707,18 @@ export default function RiskConsolePage() {
           <div className="lg:col-span-5 space-y-4">
             {/* Entity Header & Score Overview Card */}
             {activeEntity && (
-              <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
+              <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6">
                 <div className="flex items-start justify-between gap-3 border-b border-slate-100 pb-4">
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200">
+                      <span className="text-[10px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-orange-50 text-orange-700 border border-orange-200">
                         {activeEntity.entity_type}
                       </span>
-                      <span className="text-xs text-slate-400">
+                      <span className="text-xs text-slate-400 font-mono">
                         ID: {activeEntity.entity_id.slice(0, 8)}…
                       </span>
                     </div>
-                    <h2 className="text-sm font-bold text-slate-900 mt-1">
+                    <h2 className="text-base font-heading font-bold text-slate-900 mt-1.5">
                       {activeEntity.title}
                     </h2>
                     <p className="text-xs text-slate-500 mt-0.5">
@@ -725,21 +730,21 @@ export default function RiskConsolePage() {
                     onClick={() => handleRecomputeEntity(activeEntity)}
                     disabled={isRecomputing}
                     title="Re-run explainable rules against live database"
-                    className="p-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors"
+                    className="p-2 rounded-xl border border-slate-200 text-slate-600 hover:border-orange-300 hover:text-orange-600 hover:bg-orange-50 transition-all cursor-pointer"
                   >
                     <RefreshCw className={`h-4 w-4 ${isRecomputing ? "animate-spin" : ""}`} />
                   </button>
                 </div>
 
                 {/* Score Big Display */}
-                <div className="mt-4 p-4 rounded-xl bg-slate-50 border border-slate-200/80 flex items-center justify-between">
+                <div className="mt-4 p-5 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-between">
                   <div>
-                    <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
-                      {simulationMode ? "Simulated Risk Score" : "Current Risk Score"}
+                    <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide font-mono">
+                      {simulationMode ? "Simulated Score" : "Assessed Risk Score"}
                     </div>
                     <div className="flex items-baseline gap-2 mt-1">
                       <span
-                        className={`text-3xl font-black ${
+                        className={`text-3xl font-heading font-black ${
                           simulatedScoreData.score >= 60
                             ? "text-red-600"
                             : simulatedScoreData.score >= 30
@@ -749,9 +754,9 @@ export default function RiskConsolePage() {
                       >
                         {simulatedScoreData.score.toFixed(1)}
                       </span>
-                      <span className="text-xs text-slate-400 font-medium">/ 100</span>
+                      <span className="text-xs text-slate-400 font-mono">/ 100</span>
                       <span
-                        className={`text-xs font-bold px-2 py-0.5 rounded-full capitalize ${
+                        className={`text-[11px] font-mono font-bold px-2 py-0.5 rounded-full capitalize ${
                           simulatedScoreData.score >= 60
                             ? "bg-red-100 text-red-800"
                             : simulatedScoreData.score >= 30
@@ -764,7 +769,7 @@ export default function RiskConsolePage() {
                     </div>
 
                     {simulationMode && (
-                      <div className="text-xs text-slate-600 mt-1.5 flex items-center gap-1.5">
+                      <div className="text-xs text-slate-600 mt-2 flex items-center gap-1.5 font-mono">
                         <span>Stored: <strong>{activeEntity.score.toFixed(1)}</strong></span>
                         <span>→</span>
                         <span
@@ -783,13 +788,13 @@ export default function RiskConsolePage() {
                     )}
                   </div>
 
-                  <div className="h-12 w-12 rounded-full border-4 border-slate-200 flex items-center justify-center">
+                  <div className="h-14 w-14 rounded-2xl bg-white shadow-sm border border-slate-200 flex items-center justify-center">
                     {simulatedScoreData.score >= 60 ? (
-                      <AlertTriangle className="h-6 w-6 text-red-500" />
+                      <AlertTriangle className="h-7 w-7 text-red-500" />
                     ) : simulatedScoreData.score >= 30 ? (
-                      <Clock className="h-6 w-6 text-amber-500" />
+                      <Clock className="h-7 w-7 text-amber-500" />
                     ) : (
-                      <CheckCircle2 className="h-6 w-6 text-emerald-500" />
+                      <CheckCircle2 className="h-7 w-7 text-emerald-500" />
                     )}
                   </div>
                 </div>
@@ -798,22 +803,22 @@ export default function RiskConsolePage() {
 
             {/* ── Policy Simulation Mode Slider Box ─────────────────────── */}
             {simulationMode && (
-              <div className="bg-amber-50/70 rounded-xl border border-amber-200 p-4 shadow-sm animate-fade-in">
-                <div className="flex items-center justify-between border-b border-amber-200/80 pb-2.5">
-                  <div className="flex items-center gap-2 text-amber-900 font-bold text-xs">
-                    <Sparkles className="h-4 w-4 text-amber-600" />
+              <div className="bg-orange-50/70 rounded-2xl border border-orange-200 p-5 shadow-sm animate-fade-in">
+                <div className="flex items-center justify-between border-b border-orange-200/80 pb-3">
+                  <div className="flex items-center gap-2 text-orange-950 font-heading font-bold text-xs">
+                    <Sparkles className="h-4 w-4 text-orange-600" />
                     Policy Simulation Sliders
                   </div>
                   <button
                     onClick={() => setSimWeights(DEFAULT_RISK_WEIGHTS)}
-                    className="flex items-center gap-1 text-[11px] font-semibold text-amber-800 hover:text-amber-950"
+                    className="flex items-center gap-1 text-[11px] font-semibold text-orange-800 hover:text-orange-950 cursor-pointer"
                   >
                     <RotateCcw className="h-3 w-3" />
                     Reset Weights
                   </button>
                 </div>
 
-                <p className="text-[11px] text-amber-800/90 mt-2 mb-3">
+                <p className="text-[11px] text-orange-900/80 mt-2 mb-3 leading-relaxed">
                   Adjust rule weights to simulate statutory policy changes. Does <strong>not</strong> modify stored production database values.
                 </p>
 
@@ -828,9 +833,9 @@ export default function RiskConsolePage() {
                     ] as const
                   ).map(({ key, label }) => (
                     <div key={key}>
-                      <div className="flex items-center justify-between text-[11px] font-medium text-slate-700 mb-1">
+                      <div className="flex items-center justify-between text-[11px] font-medium text-slate-700 mb-1 font-mono">
                         <span>{label}</span>
-                        <span className="font-bold text-amber-900">
+                        <span className="font-bold text-orange-900">
                           {simWeights[key]} pts ({(simWeights[key] / 100 * 100).toFixed(0)}%)
                         </span>
                       </div>
@@ -846,7 +851,7 @@ export default function RiskConsolePage() {
                             [key]: parseInt(e.target.value, 10),
                           })
                         }
-                        className="w-full accent-amber-600 h-1.5 bg-amber-200/70 rounded-lg appearance-none cursor-pointer"
+                        className="w-full accent-orange-600 h-1.5 bg-orange-200/70 rounded-lg appearance-none cursor-pointer"
                       />
                     </div>
                   ))}
@@ -855,13 +860,13 @@ export default function RiskConsolePage() {
             )}
 
             {/* ── Explainability: Contributing Factors List ─────────────── */}
-            <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-800 flex items-center gap-1.5">
-                  <Info className="h-3.5 w-3.5 text-slate-400" />
+            <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-800 flex items-center gap-1.5 font-mono">
+                  <Info className="h-3.5 w-3.5 text-orange-500" />
                   Contributing Risk Factors (Explainability)
                 </h3>
-                <span className="text-[10px] text-slate-400 font-medium">
+                <span className="text-[10px] text-slate-400 font-mono">
                   {simulatedScoreData.reasons.length} Rules Applied
                 </span>
               </div>
@@ -875,7 +880,7 @@ export default function RiskConsolePage() {
                   return (
                     <div
                       key={reason.factor}
-                      className="p-3 rounded-lg border border-slate-100 bg-slate-50/50 hover:bg-slate-50 transition-colors"
+                      className="p-3.5 rounded-xl border border-slate-100 bg-slate-50/60 hover:bg-orange-50/20 transition-colors"
                     >
                       <div className="flex items-center justify-between gap-2">
                         <div className="flex items-center gap-2">
@@ -888,18 +893,18 @@ export default function RiskConsolePage() {
                                 : "bg-emerald-500"
                             }`}
                           />
-                          <span className="text-xs font-bold text-slate-800">
+                          <span className="text-xs font-heading font-bold text-slate-800">
                             {reason.label}
                           </span>
                         </div>
 
                         <span
-                          className={`text-xs font-bold px-2 py-0.5 rounded ${
+                          className={`text-[11px] font-mono font-bold px-2 py-0.5 rounded-full ${
                             reason.score > 0
                               ? isCritical
-                                ? "bg-red-100 text-red-800"
-                                : "bg-amber-100 text-amber-800"
-                              : "bg-emerald-100 text-emerald-800"
+                                ? "bg-red-50 text-red-700 border border-red-200"
+                                : "bg-amber-50 text-amber-700 border border-amber-200"
+                              : "bg-emerald-50 text-emerald-700 border border-emerald-200"
                           }`}
                         >
                           {reason.score.toFixed(1)} / {reason.maxScore} pts
@@ -907,7 +912,7 @@ export default function RiskConsolePage() {
                       </div>
 
                       {/* Progress bar */}
-                      <div className="w-full bg-slate-200 h-1.5 rounded-full mt-2 overflow-hidden">
+                      <div className="w-full bg-slate-200/70 h-1.5 rounded-full mt-2.5 overflow-hidden">
                         <div
                           className={`h-full rounded-full transition-all duration-300 ${
                             isCritical

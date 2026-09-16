@@ -1,7 +1,6 @@
 import type React from "react"
 import type { Metadata } from "next"
-import { GeistSans } from "geist/font/sans"
-import { GeistMono } from "geist/font/mono"
+import { Sora, Plus_Jakarta_Sans, Space_Grotesk } from "next/font/google"
 import "./globals.css"
 import "@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css"
 import { AuthProvider } from "@/components/AuthProvider"
@@ -9,6 +8,28 @@ import { LanguageProvider } from "@/components/LanguageProvider"
 import NavBar from "@/components/NavBar"
 import BhoomiChatbot from "@/components/BhoomiChatbot"
 import { Suspense } from "react"
+
+/* ── Google Font Configuration ─────────────────────────────────── */
+const sora = Sora({
+  subsets: ["latin"],
+  variable: "--font-sora",
+  display: "swap",
+  weight: ["400", "500", "600", "700", "800"],
+})
+
+const jakarta = Plus_Jakarta_Sans({
+  subsets: ["latin"],
+  variable: "--font-jakarta",
+  display: "swap",
+  weight: ["400", "500", "600", "700", "800"],
+})
+
+const spaceGrotesk = Space_Grotesk({
+  subsets: ["latin"],
+  variable: "--font-space-grotesk",
+  display: "swap",
+  weight: ["400", "500", "600", "700"],
+})
 
 export const metadata: Metadata = {
   title: "BhoomiSetu — National Land Acquisition Control & Compliance Portal",
@@ -37,34 +58,61 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body
-        className={`font-sans ${GeistSans.variable} ${GeistMono.variable} min-h-dvh bg-background text-foreground antialiased`}
+        className={`${sora.variable} ${jakarta.variable} ${spaceGrotesk.variable} font-sans min-h-dvh bg-background text-foreground antialiased`}
       >
         <LanguageProvider>
           <AuthProvider>
             <Suspense
               fallback={
-                <div className="flex items-center justify-center min-h-screen">
-                  <div className="animate-pulse text-lg text-muted-foreground">Loading BhoomiSetu Portal...</div>
+                <div className="flex items-center justify-center min-h-screen bg-background">
+                  <div className="flex flex-col items-center gap-4">
+                    <div className="relative w-12 h-12">
+                      <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-orange-400 to-amber-500 animate-pulse" />
+                      <div className="absolute inset-1 rounded-xl bg-white flex items-center justify-center">
+                        <span className="text-lg font-black text-gradient">भ</span>
+                      </div>
+                    </div>
+                    <div className="text-sm font-medium text-muted-foreground animate-pulse font-heading">
+                      Loading BhoomiSetu Portal…
+                    </div>
+                  </div>
                 </div>
               }
             >
               <NavBar />
-              <main className="min-h-[calc(100vh-56px)] bg-gray-50/80">{children}</main>
+              <main className="min-h-[calc(100vh-56px)]">{children}</main>
               <BhoomiChatbot />
 
-              <footer className="border-t border-slate-200 bg-white py-4 text-center">
-                <div className="mx-auto max-w-7xl px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-500">
-                  <div className="flex items-center gap-2">
-                    <span className="font-black text-slate-800">भूमि सेतु</span>
-                    <span className="text-slate-300">·</span>
-                    <span>National Land Acquisition & Compliance Portal</span>
-                  </div>
-                  <div className="flex items-center gap-1.5 text-slate-400">
-                    <span>Dept. of Land Resources</span>
-                    <span className="text-slate-300">·</span>
-                    <span>Ministry of Rural Development</span>
-                    <span className="text-slate-300">·</span>
-                    <span className="font-semibold text-slate-500">Government of India</span>
+              {/* ── Premium Footer ──────────────────────────────────────── */}
+              <footer className="relative border-t border-border bg-white">
+                {/* Top gradient line */}
+                <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-orange-300/40 to-transparent" />
+                
+                <div className="mx-auto max-w-7xl px-4 sm:px-6 py-5">
+                  <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+                    {/* Left: Brand */}
+                    <div className="flex items-center gap-3">
+                      <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-gradient-to-br from-orange-400 to-amber-500 shadow-sm">
+                        <span className="text-xs font-black text-white">भ</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-xs">
+                        <span className="font-heading font-bold text-foreground tracking-tight">
+                          <span className="text-orange-600">भूमि</span>
+                          <span className="text-emerald-700">सेतु</span>
+                        </span>
+                        <span className="text-border">·</span>
+                        <span className="text-muted-foreground">National Land Acquisition & Compliance Portal</span>
+                      </div>
+                    </div>
+
+                    {/* Right: Government attribution */}
+                    <div className="flex items-center gap-2 text-[11px] text-muted-foreground font-label">
+                      <span>Dept. of Land Resources</span>
+                      <span className="text-border">·</span>
+                      <span>Ministry of Rural Development</span>
+                      <span className="text-border">·</span>
+                      <span className="font-semibold text-foreground/60">Government of India</span>
+                    </div>
                   </div>
                 </div>
               </footer>

@@ -7,6 +7,7 @@
  * - Multi-parameter filtered search across projects, parcels, and awards
  * - Paginated table with real-time query refinement
  * - One-click RFC 4180 CSV export
+ * - Redesigned with White + Orange theme, Sora & Space Grotesk typography
  */
 
 import { useState } from "react";
@@ -24,6 +25,8 @@ import {
   RefreshCw,
   X,
   FileSpreadsheet,
+  Archive,
+  Sparkles,
 } from "lucide-react";
 import type { ArchiveSearchResult, ArchiveRecord } from "@/lib/db/queries/archive";
 
@@ -132,63 +135,75 @@ export default function ArchivePage() {
   })();
 
   return (
-    <div className="min-h-screen bg-slate-50 py-8 px-6">
+    <div className="min-h-screen bg-[#fafaf9] py-8 px-4 sm:px-6 lg:px-8 relative overflow-hidden font-sans">
+      {/* Decorative ambient background */}
+      <div className="absolute top-0 right-10 w-96 h-96 bg-orange-100/40 rounded-full blur-3xl pointer-events-none -z-10" />
+
       <div className="max-w-7xl mx-auto space-y-6">
         {/* ── Top Header ─────────────────────────────────────────────── */}
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200">
-                National Statutory Repository
-              </span>
-              <span className="text-xs text-slate-400">RTI & Audit Ready</span>
+        <div className="bg-white/80 backdrop-blur-md rounded-2xl border border-slate-200/80 p-6 sm:p-8 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4 relative overflow-hidden animate-fade-in">
+          <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-gradient-to-b from-orange-500 to-amber-500" />
+          <div className="flex items-start gap-4">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center text-white shadow-md shadow-orange-500/20 shrink-0">
+              <Archive className="h-6 w-6" />
             </div>
-            <h1 className="text-2xl font-black text-slate-900 mt-1">Digital Archive & Multi-Filter Search</h1>
-            <p className="text-xs text-slate-500 mt-0.5">
-              Comprehensive lookup across statutory projects, demarcated land parcels, and compensation awards
-            </p>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="inline-flex items-center gap-1 text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-orange-50 text-orange-700 border border-orange-200">
+                  <Sparkles className="w-3 h-3 text-orange-500" />
+                  National Statutory Repository
+                </span>
+                <span className="text-xs text-slate-400 font-mono hidden sm:inline-block">RTI & Statutory Audit Ready</span>
+              </div>
+              <h1 className="text-2xl sm:text-3xl font-heading font-extrabold text-slate-900 tracking-tight mt-1">
+                Digital Archive & Multi-Filter Search
+              </h1>
+              <p className="text-xs sm:text-sm text-slate-500 mt-1">
+                Unified statutory lookup across public infrastructure projects, demarcated land parcels, and compensation awards.
+              </p>
+            </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 self-start md:self-auto">
             <a
               href={csvExportUrl}
               download
-              className="flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold text-white bg-emerald-700 hover:bg-emerald-800 shadow-sm transition-all"
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-semibold text-white bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 shadow-md transition-all cursor-pointer font-mono uppercase tracking-wider"
             >
               <FileSpreadsheet className="h-4 w-4" />
-              Export to CSV
+              Export CSV
             </a>
           </div>
         </div>
 
         {/* ── Filter Bar ─────────────────────────────────────────────── */}
-        <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-4 space-y-3">
+        <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-5 space-y-4 animate-fade-in">
           <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center">
             {/* Search query input */}
             <div className="sm:col-span-5 relative">
-              <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+              <Search className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
               <input
                 type="text"
-                placeholder="Search by title, ULPIN, survey number, or body…"
+                placeholder="Search title, ULPIN, survey number, or agency…"
                 value={searchQuery}
                 onChange={(e) => {
                   setSearchQuery(e.target.value);
                   setPage(1);
                 }}
-                className="w-full pl-9 pr-3 py-2 text-xs rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-slate-900"
+                className="w-full pl-10 pr-8 py-2.5 text-xs rounded-xl border border-slate-200 bg-slate-50/60 focus:bg-white focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all placeholder:text-slate-400"
               />
               {searchQuery && (
                 <button
                   onClick={() => setSearchQuery("")}
-                  className="absolute right-3 top-2.5 text-xs text-slate-400 hover:text-slate-600 font-bold"
+                  className="absolute right-3 top-3 text-slate-400 hover:text-slate-600 p-0.5"
                 >
-                  ✕
+                  <X className="h-3.5 w-3.5" />
                 </button>
               )}
             </div>
 
             {/* Entity Type Toggle */}
-            <div className="sm:col-span-3 inline-flex rounded-lg border border-slate-200 bg-slate-50 p-0.5 text-xs">
+            <div className="sm:col-span-3 inline-flex rounded-xl border border-slate-200 bg-slate-100/80 p-1 text-xs">
               {(["all", "projects", "parcels", "awards"] as const).map((t) => (
                 <button
                   key={t}
@@ -196,9 +211,9 @@ export default function ArchivePage() {
                     setEntityType(t);
                     setPage(1);
                   }}
-                  className={`flex-1 py-1.5 px-2 rounded-md font-semibold capitalize text-center transition-all ${
+                  className={`flex-1 py-1.5 px-2 rounded-lg font-semibold capitalize text-center transition-all ${
                     entityType === t
-                      ? "bg-slate-900 text-white shadow-xs"
+                      ? "bg-white text-slate-900 shadow-sm"
                       : "text-slate-600 hover:text-slate-900"
                   }`}
                 >
@@ -217,7 +232,7 @@ export default function ArchivePage() {
                   setDistrict(e.target.value);
                   setPage(1);
                 }}
-                className="w-full px-3 py-2 text-xs rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-slate-900"
+                className="w-full px-3 py-2.5 text-xs rounded-xl border border-slate-200 bg-slate-50/60 focus:bg-white focus:outline-none focus:border-orange-500 text-slate-700"
               />
             </div>
 
@@ -231,13 +246,13 @@ export default function ArchivePage() {
                   setState(e.target.value);
                   setPage(1);
                 }}
-                className="w-full px-3 py-2 text-xs rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-slate-900"
+                className="w-full px-3 py-2.5 text-xs rounded-xl border border-slate-200 bg-slate-50/60 focus:bg-white focus:outline-none focus:border-orange-500 text-slate-700"
               />
             </div>
           </div>
 
-          <div className="flex items-center justify-between text-xs text-slate-500 pt-1">
-            <span>
+          <div className="flex items-center justify-between text-xs text-slate-500 pt-1 border-t border-slate-100">
+            <span className="font-mono">
               Showing <strong>{records.length}</strong> of <strong>{pagination.total}</strong> records
             </span>
             {(searchQuery || district || state || entityType !== "all") && (
@@ -249,47 +264,47 @@ export default function ArchivePage() {
                   setEntityType("all");
                   setPage(1);
                 }}
-                className="text-amber-700 hover:text-amber-900 font-semibold"
+                className="text-orange-600 hover:text-orange-700 font-semibold cursor-pointer"
               >
-                Clear all filters
+                Clear all active filters
               </button>
             )}
           </div>
         </div>
 
         {/* ── Results Data Table ─────────────────────────────────────── */}
-        <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+        <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden flex flex-col animate-fade-in">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead className="bg-slate-50 text-slate-500 border-b border-slate-200 uppercase font-semibold text-[10px]">
+              <thead className="bg-slate-50/80 text-slate-400 border-b border-slate-100 uppercase font-mono font-semibold text-[10px]">
                 <tr>
-                  <th className="p-3">Entity Type</th>
-                  <th className="p-3">Title & Details</th>
-                  <th className="p-3">Location</th>
-                  <th className="p-3">Status</th>
-                  <th className="p-3">Magnitude</th>
-                  <th className="p-3">Risk Score</th>
-                  <th className="p-3 text-right">Created</th>
+                  <th className="p-3.5">Type</th>
+                  <th className="p-3.5">Entity Details</th>
+                  <th className="p-3.5">Jurisdiction</th>
+                  <th className="p-3.5">Stage / Status</th>
+                  <th className="p-3.5">Magnitude</th>
+                  <th className="p-3.5">Risk Score</th>
+                  <th className="p-3.5 text-right">Registered</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {records.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="p-8 text-center text-slate-400">
-                      No records found matching your query.
+                    <td colSpan={7} className="p-12 text-center text-slate-400">
+                      No records found matching your query criteria.
                     </td>
                   </tr>
                 ) : (
                   records.map((r) => (
-                    <tr key={`${r.entityType}-${r.id}`} className="hover:bg-slate-50/60">
-                      <td className="p-3">
+                    <tr key={`${r.entityType}-${r.id}`} className="hover:bg-orange-50/30 transition-colors">
+                      <td className="p-3.5">
                         <span
-                          className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
+                          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-mono font-bold uppercase ${
                             r.entityType === "project"
-                              ? "bg-blue-100 text-blue-800"
+                              ? "bg-orange-50 text-orange-700 border border-orange-200"
                               : r.entityType === "parcel"
-                              ? "bg-purple-100 text-purple-800"
-                              : "bg-emerald-100 text-emerald-800"
+                              ? "bg-purple-50 text-purple-700 border border-purple-200"
+                              : "bg-emerald-50 text-emerald-700 border border-emerald-200"
                           }`}
                         >
                           {r.entityType === "project" ? (
@@ -303,39 +318,39 @@ export default function ArchivePage() {
                         </span>
                       </td>
 
-                      <td className="p-3">
-                        <div className="font-bold text-slate-900">{r.title}</div>
-                        <div className="text-[11px] text-slate-500">{r.secondaryInfo}</div>
+                      <td className="p-3.5">
+                        <div className="font-heading font-bold text-slate-900">{r.title}</div>
+                        <div className="text-[11px] text-slate-500 mt-0.5">{r.secondaryInfo}</div>
                       </td>
 
-                      <td className="p-3 text-slate-700">
-                        <div className="font-medium">{r.district}</div>
-                        <div className="text-[10px] text-slate-400">{r.state}</div>
+                      <td className="p-3.5 text-slate-700">
+                        <div className="font-semibold">{r.district}</div>
+                        <div className="text-[10px] text-slate-400 font-mono">{r.state}</div>
                       </td>
 
-                      <td className="p-3">
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-slate-100 text-slate-700 border border-slate-200">
+                      <td className="p-3.5">
+                        <span className="px-2.5 py-1 rounded-full text-[10px] font-mono font-bold uppercase bg-slate-100 text-slate-700 border border-slate-200">
                           {r.status}
                         </span>
                       </td>
 
-                      <td className="p-3 font-semibold text-slate-800">{r.amountOrArea}</td>
+                      <td className="p-3.5 font-semibold text-slate-800 font-mono">{r.amountOrArea}</td>
 
-                      <td className="p-3">
+                      <td className="p-3.5">
                         <span
-                          className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold ${
+                          className={`px-2.5 py-1 rounded-full text-[10px] font-mono font-black ${
                             r.riskScore >= 60
-                              ? "bg-red-100 text-red-800"
+                              ? "bg-red-50 text-red-700 border border-red-200"
                               : r.riskScore >= 30
-                              ? "bg-amber-100 text-amber-800"
-                              : "bg-emerald-100 text-emerald-800"
+                              ? "bg-amber-50 text-amber-700 border border-amber-200"
+                              : "bg-emerald-50 text-emerald-700 border border-emerald-200"
                           }`}
                         >
                           {Number(r.riskScore ?? 0).toFixed(1)}
                         </span>
                       </td>
 
-                      <td className="p-3 text-right text-[11px] text-slate-400">
+                      <td className="p-3.5 text-right text-[11px] text-slate-400 font-mono">
                         {new Date(r.createdAt).toLocaleDateString("en-IN")}
                       </td>
                     </tr>
@@ -346,8 +361,8 @@ export default function ArchivePage() {
           </div>
 
           {/* Pagination Controls */}
-          <div className="p-4 border-t border-slate-200 bg-slate-50/70 flex items-center justify-between">
-            <span className="text-xs text-slate-500">
+          <div className="p-4 border-t border-slate-100 bg-slate-50/60 flex items-center justify-between">
+            <span className="text-xs text-slate-500 font-mono">
               Page <strong>{pagination.page}</strong> of <strong>{pagination.totalPages}</strong>
             </span>
 
@@ -355,14 +370,14 @@ export default function ArchivePage() {
               <button
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                 disabled={pagination.page <= 1}
-                className="px-3 py-1.5 rounded-lg border border-slate-300 bg-white text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-40"
+                className="px-3.5 py-1.5 rounded-xl border border-slate-200 bg-white text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-40 transition-colors cursor-pointer"
               >
                 Previous
               </button>
               <button
                 onClick={() => setPage((p) => Math.min(pagination.totalPages, p + 1))}
                 disabled={pagination.page >= pagination.totalPages}
-                className="px-3 py-1.5 rounded-lg border border-slate-300 bg-white text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-40"
+                className="px-3.5 py-1.5 rounded-xl border border-slate-200 bg-white text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-40 transition-colors cursor-pointer"
               >
                 Next
               </button>

@@ -46,46 +46,53 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-amber-50 via-white to-green-50 flex items-center justify-center px-4">
-      <div className="w-full max-w-md">
+    <div className="min-h-screen relative flex items-center justify-center px-4 overflow-hidden">
+      {/* Background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-orange-50/60 via-white to-amber-50/40" />
+      <div className="absolute inset-0 bg-dots opacity-30" />
+
+      <div className="relative w-full max-w-md animate-fade-in-scale">
         {/* Logo */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-500 to-green-600 text-white text-2xl font-black mb-3">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-orange-400 to-amber-500 text-white text-2xl font-black mb-4 shadow-lg animate-float">
             भ
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">BhoomiSetu</h1>
-          <p className="text-sm text-gray-500 mt-1">Sign in to your account</p>
+          <h1 className="text-2xl font-heading font-extrabold text-foreground">
+            <span className="text-orange-600">Bhoomi</span>
+            <span className="text-emerald-700">Setu</span>
+          </h1>
+          <p className="text-sm text-muted-foreground mt-1">Sign in to your account</p>
         </div>
 
         {/* Login Form */}
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
-          <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="glass-card rounded-2xl p-7 shadow-lg">
+          <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label className="text-xs font-medium text-gray-600 mb-1 block">Email</label>
+              <label className="text-xs font-semibold font-label text-muted-foreground mb-1.5 block uppercase tracking-wider">Email</label>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="admin@bhumisetu.gov.in"
                 required
-                className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-400"
+                className="input-premium font-label"
               />
             </div>
 
             <div>
-              <label className="text-xs font-medium text-gray-600 mb-1 block">Password</label>
+              <label className="text-xs font-semibold font-label text-muted-foreground mb-1.5 block uppercase tracking-wider">Password</label>
               <input
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Enter password"
                 required
-                className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-400"
+                className="input-premium"
               />
             </div>
 
             {error && (
-              <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-xs text-red-700 flex items-center gap-2">
+              <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-xs text-red-700 flex items-center gap-2 animate-fade-in">
                 <AlertCircle className="h-4 w-4 shrink-0" />
                 {error}
               </div>
@@ -94,7 +101,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white text-sm font-bold transition-all shadow-sm flex items-center justify-center gap-2 disabled:opacity-50"
+              className="btn-primary w-full py-3 text-sm disabled:opacity-50 cursor-pointer"
             >
               {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <LogIn className="h-4 w-4" />}
               Sign In
@@ -102,19 +109,19 @@ export default function LoginPage() {
           </form>
 
           {/* Demo Credentials */}
-          <div className="mt-4 p-3 rounded-xl bg-blue-50 border border-blue-100">
-            <p className="text-[10px] font-semibold text-blue-700 uppercase tracking-wider mb-1.5">Demo Credentials</p>
-            <div className="space-y-1 text-xs text-blue-600">
-              <p><span className="font-medium">Admin:</span> admin@bhumisetu.gov.in / admin123</p>
-              <p><span className="font-medium">Citizen:</span> citizen@bhumisetu.gov.in / citizen123</p>
+          <div className="mt-5 p-3.5 rounded-xl bg-orange-50/50 border border-orange-200/50">
+            <p className="section-label text-orange-700 mb-2">Demo Credentials</p>
+            <div className="space-y-1 text-xs text-orange-800/80">
+              <p><span className="font-bold font-label">Admin:</span> admin@bhumisetu.gov.in / admin123</p>
+              <p><span className="font-bold font-label">Citizen:</span> citizen@bhumisetu.gov.in / citizen123</p>
             </div>
           </div>
         </div>
 
         {/* Register Link */}
-        <p className="text-center text-sm text-gray-500 mt-4">
+        <p className="text-center text-sm text-muted-foreground mt-5">
           Don&apos;t have an account?{" "}
-          <Link href="/register" className="font-semibold text-amber-600 hover:text-amber-700 underline underline-offset-2">
+          <Link href="/register" className="font-semibold text-orange-600 hover:text-orange-700 underline underline-offset-2 transition-colors">
             Register as Citizen
           </Link>
         </p>

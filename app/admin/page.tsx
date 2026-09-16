@@ -7,19 +7,31 @@
  * 1. Add Parcel       — form with MiniMapPolygon for geometry entry
  * 2. Add Project      — form with MiniMapPolygon for alignment drawing
  * 3. Mock Adapters    — test DILRMP / LACRRIS / BhoomiRashi / PFMS mock APIs
+ * Redesigned with White + Orange theme, Sora & Space Grotesk typography
  */
 
 import { useState } from "react";
 import dynamic from "next/dynamic";
 import useSWR from "swr";
-import { Shield, MapPin, Building2, Plug, Loader2, CheckCircle2, AlertTriangle, RefreshCw, Dice5 } from "lucide-react";
+import {
+  Shield,
+  MapPin,
+  Building2,
+  Plug,
+  Loader2,
+  CheckCircle2,
+  AlertTriangle,
+  RefreshCw,
+  Dice5,
+  Sparkles,
+} from "lucide-react";
 import type { Polygon, MultiPolygon } from "geojson";
 
 const MiniMapPolygon = dynamic(() => import("@/components/map/MiniMapPolygon"), {
   ssr: false,
   loading: () => (
-    <div className="h-72 bg-gray-100 rounded-lg flex items-center justify-center">
-      <Loader2 className="h-5 w-5 animate-spin text-gray-400" />
+    <div className="h-72 bg-slate-50 rounded-2xl border border-slate-200 flex items-center justify-center">
+      <Loader2 className="h-6 w-6 animate-spin text-orange-500" />
     </div>
   ),
 });
@@ -29,9 +41,9 @@ const MiniMapPolygon = dynamic(() => import("@/components/map/MiniMapPolygon"), 
 type Tab = "parcel" | "project" | "mock";
 
 const TABS: { id: Tab; label: string; icon: React.ReactNode }[] = [
-  { id: "parcel",  label: "Add Parcel",    icon: <MapPin className="h-4 w-4" /> },
-  { id: "project", label: "Add Project",   icon: <Building2 className="h-4 w-4" /> },
-  { id: "mock",    label: "Mock Adapters", icon: <Plug className="h-4 w-4" /> },
+  { id: "parcel",  label: "Demarcate Parcel",  icon: <MapPin className="h-4 w-4" /> },
+  { id: "project", label: "Register Corridor", icon: <Building2 className="h-4 w-4" /> },
+  { id: "mock",    label: "Federated Adapters", icon: <Plug className="h-4 w-4" /> },
 ];
 
 // ── Mock adapter keys ────────────────────────────────────────────────────────
@@ -39,13 +51,11 @@ const TABS: { id: Tab; label: string; icon: React.ReactNode }[] = [
 const MOCK_ADAPTERS = [
   { key: "dilrmp",     label: "DILRMP",      color: "bg-blue-600",   desc: "Digital India Land Records Modernisation Programme" },
   { key: "lacrris",    label: "LACRRIS",     color: "bg-purple-600", desc: "Land Acquisition, Compensation, R&R Info System" },
-  { key: "bhoomirashi",label: "BhoomiRashi", color: "bg-green-600",  desc: "Highway land acquisition compensation portal" },
-  { key: "pfms",       label: "PFMS",        color: "bg-amber-600",  desc: "Public Financial Management System (disbursement)" },
+  { key: "bhoomirashi",label: "BhoomiRashi", color: "bg-orange-600", desc: "Highway land acquisition compensation portal" },
+  { key: "pfms",       label: "PFMS",        color: "bg-emerald-600",desc: "Public Financial Management System (disbursement)" },
 ] as const;
 
 // ── ULPIN Auto-Generation ──────────────────────────────────────────────────
-// Format: SSDD (state 2 + district 2) + 10 random digits = 14 digits total
-// Indian state codes (Census 2011)
 
 const STATE_CODES: Record<string, string> = {
   "Andhra Pradesh": "28", "Arunachal Pradesh": "12", "Assam": "18",
@@ -83,7 +93,6 @@ function AddParcelForm() {
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState<{ ok: boolean; message: string } | null>(null);
 
-  // Fetch projects for the selector
   const { data: projectsData } = useSWR<{ data: { id: string; name: string; district: string; state: string }[] }>(
     "/api/projects?limit=200",
     (url: string) => fetch(url).then((r) => r.json())
@@ -93,7 +102,6 @@ function AddParcelForm() {
   function handleField(field: string, value: string) {
     setForm((f) => {
       const next = { ...f, [field]: value };
-      // Auto-fill state/district from selected project
       if (field === "project_id" && value) {
         const proj = projects.find((p) => p.id === value);
         if (proj) {
@@ -108,8 +116,8 @@ function AddParcelForm() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!geom) { setResult({ ok: false, message: "Please draw the parcel boundary on the map." }); return; }
-    if (!form.ulpin.trim()) { setResult({ ok: false, message: "ULPIN is required." }); return; }
+    if (!geom) { setResult({ ok: false, message: "Please draw the parcel boundary polygon on the map." }); return; }
+    if (!form.ulpin.trim()) { setResult({ ok: false, message: "14-digit ULPIN is required." }); return; }
 
     setSubmitting(true);
     try {
@@ -133,7 +141,6 @@ function AddParcelForm() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Failed to create parcel");
 
-      // Auto-compute risk score for the new parcel
       let riskMsg = "";
       if (data.data?.id) {
         try {
@@ -162,22 +169,22 @@ function AddParcelForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-8">
       {/* Left: field inputs */}
       <div className="flex flex-col gap-4">
-        <h2 className="font-semibold text-gray-700">Parcel Details</h2>
+        <h2 className="text-base font-heading font-bold text-slate-900">Parcel Identity & Boundary</h2>
 
         {/* Project selector */}
         <div>
-          <label className="text-xs font-medium text-gray-600 mb-1 block">
-            Link to Project <span className="text-gray-400">(optional)</span>
+          <label className="text-xs font-semibold text-slate-700 mb-1 block">
+            Link to Corridor <span className="text-slate-400 font-normal">(Optional)</span>
           </label>
           <select
             value={form.project_id}
             onChange={(e) => handleField("project_id", e.target.value)}
-            className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400"
+            className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 bg-slate-50/60 focus:bg-white focus:outline-none focus:border-orange-500 font-medium text-slate-700"
           >
-            <option value="">— No project (standalone parcel) —</option>
+            <option value="">— Standalone Parcel (No Corridor) —</option>
             {projects.map((p) => (
               <option key={p.id} value={p.id}>
                 {p.name} ({p.district}, {p.state})
@@ -185,31 +192,31 @@ function AddParcelForm() {
             ))}
           </select>
           {form.project_id && (
-            <p className="text-[10px] text-green-600 mt-1">
-              ✓ State & district auto-filled from project. Parcel will appear in project&apos;s atlas view.
+            <p className="text-[11px] text-emerald-600 font-medium mt-1">
+              ✓ State & district auto-linked from selected project corridor.
             </p>
           )}
         </div>
 
         {[
-          { label: "ULPIN (14-digit)", field: "ulpin", placeholder: "e.g. 27010100012345", required: true, autoGen: true },
-          { label: "Survey Number", field: "survey_number", placeholder: "e.g. 45/2A" },
-          { label: "Village", field: "village", placeholder: "e.g. Bhimashankar" },
+          { label: "ULPIN / Bhu-Aadhaar (14-digit)", field: "ulpin", placeholder: "e.g. 27010100012345", required: true, autoGen: true },
+          { label: "Revenue Survey Number", field: "survey_number", placeholder: "e.g. 45/2A" },
+          { label: "Revenue Village", field: "village", placeholder: "e.g. Bhimashankar" },
           { label: "District", field: "district", placeholder: "e.g. Pune" },
           { label: "State", field: "state", placeholder: "e.g. Maharashtra" },
-          { label: "Area (hectares)", field: "area_hectares", placeholder: "e.g. 2.45" },
+          { label: "Demarcated Area (hectares)", field: "area_hectares", placeholder: "e.g. 2.45" },
         ].map(({ label, field, placeholder, required, autoGen }) => (
           <div key={field}>
-            <label className="text-xs font-medium text-gray-600 mb-1 block">
-              {label} {required && <span className="text-red-500">*</span>}
+            <label className="text-xs font-semibold text-slate-700 mb-1 block">
+              {label} {required && <span className="text-orange-600">*</span>}
             </label>
-            <div className="flex gap-1.5">
+            <div className="flex gap-2">
               <input
                 type="text"
                 placeholder={placeholder}
                 value={form[field as keyof typeof form]}
                 onChange={(e) => handleField(field, e.target.value)}
-                className="flex-1 px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400"
+                className="flex-1 px-3 py-2 text-xs rounded-xl border border-slate-200 bg-slate-50/60 focus:bg-white focus:outline-none focus:border-orange-500 font-medium text-slate-800"
               />
               {autoGen && (
                 <button
@@ -218,11 +225,11 @@ function AddParcelForm() {
                     const ulpin = generateUlpin(form.state, form.district);
                     handleField("ulpin", ulpin);
                   }}
-                  title="Auto-generate ULPIN from state + district"
-                  className="px-2 py-2 bg-indigo-100 text-indigo-700 rounded-lg hover:bg-indigo-200 transition-colors flex items-center gap-1 text-xs font-medium shrink-0"
+                  title="Auto-generate 14-digit ULPIN"
+                  className="px-3 py-2 bg-orange-50 border border-orange-200 text-orange-700 rounded-xl hover:bg-orange-100 transition-colors flex items-center gap-1 text-xs font-semibold shrink-0 cursor-pointer"
                 >
-                  <Dice5 className="h-3.5 w-3.5" />
-                  Generate
+                  <Dice5 className="h-3.5 w-3.5 text-orange-600" />
+                  Auto ULPIN
                 </button>
               )}
             </div>
@@ -231,11 +238,11 @@ function AddParcelForm() {
 
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="text-xs font-medium text-gray-600 mb-1 block">Land Type</label>
+            <label className="text-xs font-semibold text-slate-700 mb-1 block">Land Classification</label>
             <select
               value={form.land_type}
               onChange={(e) => handleField("land_type", e.target.value)}
-              className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400"
+              className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 bg-slate-50/60 focus:bg-white focus:outline-none focus:border-orange-500 font-medium text-slate-700"
             >
               {["agricultural", "commercial", "forest", "residential", "government", "other"].map((v) => (
                 <option key={v} value={v}>{v}</option>
@@ -243,14 +250,14 @@ function AddParcelForm() {
             </select>
           </div>
           <div>
-            <label className="text-xs font-medium text-gray-600 mb-1 block">Ownership Status</label>
+            <label className="text-xs font-semibold text-slate-700 mb-1 block">Ownership Record</label>
             <select
               value={form.ownership_status}
               onChange={(e) => handleField("ownership_status", e.target.value)}
-              className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400"
+              className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 bg-slate-50/60 focus:bg-white focus:outline-none focus:border-orange-500 font-medium text-slate-700"
             >
-              <option value="clear">Clear</option>
-              <option value="disputed">Disputed</option>
+              <option value="clear">Clear Title</option>
+              <option value="disputed">Disputed Title</option>
               <option value="under_verification">Under Verification</option>
             </select>
           </div>
@@ -262,16 +269,16 @@ function AddParcelForm() {
             id="litigation_flag"
             checked={(form as any).litigation_flag ?? false}
             onChange={(e) => handleField("litigation_flag", e.target.checked ? "true" : "")}
-            className="h-4 w-4 rounded border-gray-300 text-red-600 focus:ring-red-500"
+            className="h-4 w-4 rounded border-slate-300 text-orange-600 focus:ring-orange-500"
           />
-          <label htmlFor="litigation_flag" className="text-xs font-medium text-gray-700">
-            Litigation Pending Flag (Civil / High Court stay injunction)
+          <label htmlFor="litigation_flag" className="text-xs font-medium text-slate-700 cursor-pointer">
+            Active Civil / High Court Stay Petition Flag
           </label>
         </div>
 
         {result && (
-          <div className={`flex items-start gap-2 text-sm rounded-lg px-3 py-2 ${result.ok ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700"}`}>
-            {result.ok ? <CheckCircle2 className="h-4 w-4 shrink-0 mt-0.5" /> : <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />}
+          <div className={`flex items-start gap-2 text-xs font-medium rounded-xl p-3 ${result.ok ? "bg-emerald-50 text-emerald-800 border border-emerald-200" : "bg-red-50 text-red-800 border border-red-200"}`}>
+            {result.ok ? <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600 mt-0.5" /> : <AlertTriangle className="h-4 w-4 shrink-0 text-red-600 mt-0.5" />}
             {result.message}
           </div>
         )}
@@ -279,16 +286,24 @@ function AddParcelForm() {
         <button
           type="submit"
           disabled={submitting}
-          className="flex items-center justify-center gap-2 px-4 py-2 bg-amber-600 text-white rounded-lg font-medium hover:bg-amber-700 disabled:opacity-50 transition-colors"
+          className="flex items-center justify-center gap-2 px-5 py-3 bg-gradient-to-r from-orange-500 to-amber-600 text-white rounded-xl text-xs font-semibold uppercase tracking-wider font-mono shadow-md hover:shadow-lg disabled:opacity-50 transition-all cursor-pointer mt-2"
         >
           {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
-          {submitting ? "Creating…" : "Create Parcel & Compute Risk"}
+          {submitting ? "Demarcating…" : "Create Parcel & Compute Risk"}
         </button>
       </div>
 
       {/* Right: polygon draw */}
-      <div>
-        <MiniMapPolygon value={geom} onChange={setGeom} height={400} />
+      <div className="space-y-2">
+        <label className="text-xs font-semibold text-slate-700 block">
+          Demarcate Cadastral Polygon on Map *
+        </label>
+        <div className="rounded-2xl overflow-hidden border border-slate-200 shadow-sm">
+          <MiniMapPolygon value={geom} onChange={setGeom} height={420} />
+        </div>
+        <p className="text-[11px] text-slate-400">
+          Click on the spatial viewer to place vertices and enclose the parcel boundary.
+        </p>
       </div>
     </form>
   );
@@ -324,7 +339,7 @@ function AddProjectForm() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Failed to create project");
-      setResult({ ok: true, message: `Project "${form.name}" created — ID: ${data.data?.id}` });
+      setResult({ ok: true, message: `Project "${form.name}" registered — ID: ${data.data?.id}` });
       setForm({ name: "", land_requiring_body: "", ministry: "", state: "", district: "", project_type: "highway" });
       setGeom(null);
     } catch (err) {
@@ -335,36 +350,36 @@ function AddProjectForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-8">
       <div className="flex flex-col gap-4">
-        <h2 className="font-semibold text-gray-700">Project Details</h2>
+        <h2 className="text-base font-heading font-bold text-slate-900">Statutory Project Profile</h2>
         {[
-          { label: "Project Name", field: "name", placeholder: "e.g. NH-48 Widening Phase II", required: true },
-          { label: "Land Requiring Body", field: "land_requiring_body", placeholder: "e.g. NHAI", required: true },
-          { label: "Ministry", field: "ministry", placeholder: "e.g. MoRTH" },
+          { label: "Corridor / Project Name", field: "name", placeholder: "e.g. NH-48 Widening Phase II", required: true },
+          { label: "Land Requiring Body (Agency)", field: "land_requiring_body", placeholder: "e.g. NHAI", required: true },
+          { label: "Sponsoring Ministry", field: "ministry", placeholder: "e.g. MoRTH" },
           { label: "State", field: "state", placeholder: "e.g. Maharashtra", required: true },
           { label: "District", field: "district", placeholder: "e.g. Pune", required: true },
         ].map(({ label, field, placeholder, required }) => (
           <div key={field}>
-            <label className="text-xs font-medium text-gray-600 mb-1 block">
-              {label} {required && <span className="text-red-500">*</span>}
+            <label className="text-xs font-semibold text-slate-700 mb-1 block">
+              {label} {required && <span className="text-orange-600">*</span>}
             </label>
             <input
               type="text"
               placeholder={placeholder}
               value={form[field as keyof typeof form]}
               onChange={(e) => handleField(field, e.target.value)}
-              className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400"
+              className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 bg-slate-50/60 focus:bg-white focus:outline-none focus:border-orange-500 font-medium text-slate-800"
             />
           </div>
         ))}
 
         <div>
-          <label className="text-xs font-medium text-gray-600 mb-1 block">Project Type</label>
+          <label className="text-xs font-semibold text-slate-700 mb-1 block">Project Typology</label>
           <select
             value={form.project_type}
             onChange={(e) => handleField("project_type", e.target.value)}
-            className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400"
+            className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 bg-slate-50/60 focus:bg-white focus:outline-none focus:border-orange-500 font-medium text-slate-700"
           >
             {["highway", "railway", "irrigation", "industrial_corridor", "power_line", "pipeline", "other"].map((v) => (
               <option key={v} value={v}>{v.replace("_", " ")}</option>
@@ -373,8 +388,8 @@ function AddProjectForm() {
         </div>
 
         {result && (
-          <div className={`flex items-start gap-2 text-sm rounded-lg px-3 py-2 ${result.ok ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700"}`}>
-            {result.ok ? <CheckCircle2 className="h-4 w-4 shrink-0 mt-0.5" /> : <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />}
+          <div className={`flex items-start gap-2 text-xs font-medium rounded-xl p-3 ${result.ok ? "bg-emerald-50 text-emerald-800 border border-emerald-200" : "bg-red-50 text-red-800 border border-red-200"}`}>
+            {result.ok ? <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600 mt-0.5" /> : <AlertTriangle className="h-4 w-4 shrink-0 text-red-600 mt-0.5" />}
             {result.message}
           </div>
         )}
@@ -382,17 +397,22 @@ function AddProjectForm() {
         <button
           type="submit"
           disabled={submitting}
-          className="flex items-center justify-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 disabled:opacity-50 transition-colors"
+          className="flex items-center justify-center gap-2 px-5 py-3 bg-gradient-to-r from-orange-500 to-amber-600 text-white rounded-xl text-xs font-semibold uppercase tracking-wider font-mono shadow-md hover:shadow-lg disabled:opacity-50 transition-all cursor-pointer mt-2"
         >
           {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
-          {submitting ? "Creating…" : "Create Project"}
+          {submitting ? "Registering…" : "Register Infrastructure Corridor"}
         </button>
       </div>
 
-      <div>
-        <MiniMapPolygon value={geom} onChange={setGeom} height={400} />
-        <p className="text-xs text-gray-400 mt-1">
-          Draw the project alignment corridor (optional — can also be uploaded via Atlas)
+      <div className="space-y-2">
+        <label className="text-xs font-semibold text-slate-700 block">
+          Corridor Spatial Alignment (Optional)
+        </label>
+        <div className="rounded-2xl overflow-hidden border border-slate-200 shadow-sm">
+          <MiniMapPolygon value={geom} onChange={setGeom} height={420} />
+        </div>
+        <p className="text-[11px] text-slate-400">
+          Draw the linear alignment corridor geometry or upload GeoJSON later via the Spatial Atlas.
         </p>
       </div>
     </form>
@@ -429,12 +449,14 @@ function MockAdaptersPanel() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex items-center gap-2 mb-1">
-        <Plug className="h-5 w-5 text-purple-600" />
+      <div className="flex items-center gap-2.5 mb-1">
+        <div className="w-9 h-9 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center">
+          <Plug className="h-5 w-5" />
+        </div>
         <div>
-          <h2 className="font-semibold text-gray-700">Mock Integration Adapters</h2>
-          <p className="text-xs text-gray-400">
-            All responses are clearly labeled <code className="bg-gray-100 px-1 rounded">source: &quot;mock-*&quot;</code> — no real government API access claimed.
+          <h2 className="text-sm font-heading font-bold text-slate-900">Federated Integration Adapters</h2>
+          <p className="text-xs text-slate-400">
+            Simulate inter-agency data synchronization. All payloads are marked <code className="bg-slate-100 text-orange-700 px-1 rounded font-mono">mock-*</code>.
           </p>
         </div>
       </div>
@@ -443,32 +465,32 @@ function MockAdaptersPanel() {
         {MOCK_ADAPTERS.map(({ key, label, color, desc }) => {
           const state = results[key];
           return (
-            <div key={key} className="border rounded-xl p-4 bg-white shadow-sm">
+            <div key={key} className="border border-slate-200/80 rounded-2xl p-5 bg-white shadow-sm hover:border-orange-200 transition-all">
               <div className="flex items-center justify-between mb-2">
-                <div>
-                  <span className={`inline-block px-2 py-0.5 rounded text-xs font-bold text-white ${color} mr-2`}>
+                <div className="flex items-center gap-2">
+                  <span className={`inline-block px-2 py-0.5 rounded text-[10px] font-mono font-bold text-white ${color}`}>
                     MOCK
                   </span>
-                  <span className="font-semibold text-gray-800">{label}</span>
+                  <span className="font-heading font-bold text-slate-900 text-sm">{label}</span>
                 </div>
                 <button
                   onClick={() => callAdapter(key)}
                   disabled={state?.loading}
-                  className="flex items-center gap-1 px-3 py-1 bg-gray-800 text-white text-xs rounded-lg hover:bg-gray-700 disabled:opacity-50 transition-colors"
+                  className="flex items-center gap-1 px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold rounded-xl disabled:opacity-50 transition-all cursor-pointer font-mono"
                 >
                   {state?.loading && <Loader2 className="h-3 w-3 animate-spin" />}
                   Ping
                 </button>
               </div>
-              <p className="text-xs text-gray-500 mb-2">{desc}</p>
+              <p className="text-xs text-slate-500 mb-3 leading-relaxed">{desc}</p>
 
               {state?.error && (
-                <div className="text-xs text-red-600 bg-red-50 rounded p-2">
-                  ⚠ {state.error} — <span className="text-gray-400">Make sure <code>/api/mock/{key}</code> is implemented</span>
+                <div className="text-xs text-red-600 bg-red-50 rounded-xl p-3 border border-red-200 font-mono">
+                  ⚠ {state.error}
                 </div>
               )}
               {state?.data && !state.loading && (
-                <pre className="text-xs bg-gray-50 rounded-lg p-2 overflow-x-auto max-h-40 border border-gray-100 font-mono">
+                <pre className="text-[11px] bg-slate-50 rounded-xl p-3 overflow-x-auto max-h-40 border border-slate-100 font-mono text-slate-700">
                   {JSON.stringify(state.data as Record<string, unknown>, null, 2)}
                 </pre>
               )}
@@ -477,61 +499,64 @@ function MockAdaptersPanel() {
         })}
       </div>
 
-      <div className="text-xs text-slate-600 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
-        💡 Federated Integration: Mock adapters log every call to <code className="bg-amber-100 rounded px-1 font-bold">mock_adapter_log</code> in the database to audit inter-departmental data exchange across DILRMP, LACRRIS, BhoomiRashi, and PFMS.
+      <div className="text-xs text-slate-600 bg-orange-50/60 border border-orange-200 rounded-2xl p-4 flex items-start gap-2.5">
+        <Sparkles className="h-4 w-4 text-orange-600 shrink-0 mt-0.5" />
+        <div>
+          <strong className="text-orange-900">Federated Audit Log:</strong> Every ping logs an immutable transaction record to <code className="bg-orange-100/80 rounded px-1 font-mono font-bold text-orange-800">mock_adapter_log</code> to simulate cross-ministerial accountability.
+        </div>
       </div>
 
       {/* Live Mock Adapter Log Table */}
-      <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-        <div className="p-4 border-b border-slate-200 bg-slate-50/70 flex items-center justify-between">
+      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+        <div className="p-4 border-b border-slate-100 bg-slate-50/60 flex items-center justify-between">
           <div>
-            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-800">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-800 font-mono">
               Live Mock Adapter Log (mock_adapter_log Table)
             </h3>
-            <p className="text-[11px] text-slate-400">Audit of all inbound and outbound mock federated adapter payloads</p>
+            <p className="text-[11px] text-slate-400 font-sans">Audit of all inbound and outbound federated payloads</p>
           </div>
           <button
             onClick={() => mutateLogs()}
             disabled={logsLoading}
-            className="text-xs px-2.5 py-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold flex items-center gap-1"
+            className="text-xs px-3 py-1.5 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold flex items-center gap-1.5 cursor-pointer shadow-xs"
           >
             <RefreshCw className={`h-3 w-3 ${logsLoading ? "animate-spin" : ""}`} />
-            Refresh Log
+            Refresh
           </button>
         </div>
 
         <div className="overflow-x-auto max-h-64">
           <table className="w-full text-left text-xs">
-            <thead className="bg-slate-50 text-slate-500 border-b border-slate-200 text-[10px] uppercase font-semibold">
+            <thead className="bg-slate-50/80 text-slate-400 border-b border-slate-100 text-[10px] uppercase font-mono font-semibold">
               <tr>
-                <th className="p-2.5">Source</th>
-                <th className="p-2.5">Request Payload</th>
-                <th className="p-2.5">Response Payload</th>
-                <th className="p-2.5 text-right">Called At</th>
+                <th className="p-3">Source</th>
+                <th className="p-3">Request Payload</th>
+                <th className="p-3">Response Payload</th>
+                <th className="p-3 text-right">Timestamp</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-slate-100 font-mono text-[11px]">
               {logs.length === 0 ? (
                 <tr>
-                  <td colSpan={4} className="p-6 text-center text-slate-400">
+                  <td colSpan={4} className="p-8 text-center text-slate-400 font-sans">
                     No mock adapter calls recorded yet. Click &quot;Ping&quot; above to log an integration call.
                   </td>
                 </tr>
               ) : (
                 logs.map((log: { id: string; source: string; request: unknown; response: unknown; called_at: string }) => (
-                  <tr key={log.id} className="hover:bg-slate-50/60 font-mono text-[11px]">
-                    <td className="p-2.5 font-bold text-slate-800">
-                      <span className="px-1.5 py-0.5 rounded bg-slate-100 border border-slate-200 text-[10px]">
+                  <tr key={log.id} className="hover:bg-orange-50/20 transition-colors">
+                    <td className="p-3 font-bold text-slate-800">
+                      <span className="px-2 py-0.5 rounded-md bg-slate-100 border border-slate-200 text-[10px]">
                         {log.source}
                       </span>
                     </td>
-                    <td className="p-2.5 max-w-[200px] truncate text-slate-600">
+                    <td className="p-3 max-w-[200px] truncate text-slate-600">
                       {typeof log.request === "object" ? JSON.stringify(log.request) : String(log.request ?? "")}
                     </td>
-                    <td className="p-2.5 max-w-[260px] truncate text-slate-600">
+                    <td className="p-3 max-w-[260px] truncate text-slate-600">
                       {typeof log.response === "object" ? JSON.stringify(log.response) : String(log.response ?? "")}
                     </td>
-                    <td className="p-2.5 text-right text-slate-400 font-sans text-[10px]">
+                    <td className="p-3 text-right text-slate-400 font-sans text-[10px]">
                       {new Date(log.called_at).toLocaleTimeString("en-IN")}
                     </td>
                   </tr>
@@ -551,41 +576,55 @@ export default function AdminPage() {
   const [activeTab, setActiveTab] = useState<Tab>("parcel");
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-8">
-      {/* Header */}
-      <div className="flex items-center gap-3 mb-6">
-        <div className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-green-600">
-          <Shield className="h-5 w-5 text-white" />
-        </div>
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Admin Console</h1>
-          <p className="text-sm text-gray-500">Data entry, parcel geometry, mock integration testing</p>
-        </div>
-      </div>
+    <div className="min-h-screen bg-[#fafaf9] py-8 px-4 sm:px-6 lg:px-8 relative overflow-hidden font-sans">
+      {/* Decorative ambient background */}
+      <div className="absolute top-0 right-10 w-96 h-96 bg-orange-100/40 rounded-full blur-3xl pointer-events-none -z-10" />
 
-      {/* Tabs */}
-      <div className="flex gap-1 p-1 bg-gray-100 rounded-xl mb-6 w-fit">
-        {TABS.map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-              activeTab === tab.id
-                ? "bg-white text-amber-700 shadow-sm"
-                : "text-gray-600 hover:text-gray-800"
-            }`}
-          >
-            {tab.icon}
-            {tab.label}
-          </button>
-        ))}
-      </div>
+      <div className="mx-auto max-w-6xl space-y-6">
+        {/* Header */}
+        <div className="bg-white/80 backdrop-blur-md rounded-2xl border border-slate-200/80 p-6 sm:p-8 shadow-sm flex items-center gap-4 relative overflow-hidden animate-fade-in">
+          <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-gradient-to-b from-orange-500 to-amber-500" />
+          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center text-white shadow-md shadow-orange-500/20 shrink-0">
+            <Shield className="h-6 w-6" />
+          </div>
+          <div>
+            <div className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-orange-50 text-orange-700 border border-orange-200 mb-1">
+              <Sparkles className="w-3 h-3 text-orange-500" />
+              Administrative Operations Console
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-heading font-extrabold text-slate-900 tracking-tight">
+              Land Administration & Integrations
+            </h1>
+            <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
+              Demarcate parcel cadastral boundaries, register infrastructure corridors, and test federated mock adapters.
+            </p>
+          </div>
+        </div>
 
-      {/* Tab content */}
-      <div className="bg-white rounded-2xl border shadow-sm p-6">
-        {activeTab === "parcel"  && <AddParcelForm />}
-        {activeTab === "project" && <AddProjectForm />}
-        {activeTab === "mock"    && <MockAdaptersPanel />}
+        {/* Tabs */}
+        <div className="flex gap-1.5 p-1 bg-slate-100/90 rounded-2xl w-fit border border-slate-200/60 animate-fade-in">
+          {TABS.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                activeTab === tab.id
+                  ? "bg-white text-orange-700 shadow-sm"
+                  : "text-slate-600 hover:text-slate-900"
+              }`}
+            >
+              {tab.icon}
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Tab content */}
+        <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6 sm:p-8 animate-fade-in">
+          {activeTab === "parcel"  && <AddParcelForm />}
+          {activeTab === "project" && <AddProjectForm />}
+          {activeTab === "mock"    && <MockAdaptersPanel />}
+        </div>
       </div>
     </div>
   );

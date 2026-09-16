@@ -6,6 +6,7 @@
  * Track and manage compensation payment lifecycle:
  * assessed → sanctioned → disbursed → failed
  * With mock PFMS integration on disbursement.
+ * Redesigned with White + Orange theme, Sora & Space Grotesk typography
  */
 
 import { useState } from "react";
@@ -18,6 +19,7 @@ import {
   ChevronDown,
   Send,
   XCircle,
+  Sparkles,
 } from "lucide-react";
 import type { CompensationPayment } from "@/lib/db/queries/compensation";
 
@@ -39,10 +41,10 @@ interface Project {
 }
 
 const STATUS_STYLE: Record<string, string> = {
-  assessed: "bg-gray-100 text-gray-600",
-  sanctioned: "bg-blue-100 text-blue-700",
-  disbursed: "bg-green-100 text-green-700",
-  failed: "bg-red-100 text-red-700",
+  assessed: "bg-slate-100 text-slate-700 border-slate-200",
+  sanctioned: "bg-blue-50 text-blue-700 border-blue-200",
+  disbursed: "bg-emerald-50 text-emerald-700 border-emerald-200",
+  failed: "bg-red-50 text-red-700 border-red-200",
 };
 
 const VALID_TRANSITIONS: Record<string, string[]> = {
@@ -78,146 +80,162 @@ export default function CompensationPage() {
     .reduce((s, p) => s + (p.amount_disbursed ?? p.amount_assessed), 0);
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-8">
-      {/* Header */}
-      <div className="flex items-center gap-3 mb-6">
-        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center">
-          <Banknote className="h-5 w-5 text-white" />
-        </div>
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Compensation Disbursement</h1>
-          <p className="text-sm text-gray-500">
-            RFCTLARR §38(1) — DBT-based compensation lifecycle with mock PFMS integration.
-          </p>
-        </div>
-      </div>
+    <div className="min-h-screen bg-[#fafaf9] py-8 px-4 sm:px-6 lg:px-8 relative overflow-hidden font-sans">
+      {/* Decorative ambient background */}
+      <div className="absolute top-0 right-10 w-96 h-96 bg-orange-100/40 rounded-full blur-3xl pointer-events-none -z-10" />
 
-      {/* Project selector */}
-      <div className="bg-white rounded-2xl border shadow-sm p-4 mb-6">
-        <label className="text-xs text-gray-500 mb-1 block">Select Project</label>
-        <div className="relative">
-          <select
-            value={projectId}
-            onChange={(e) => setProjectId(e.target.value)}
-            className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400 appearance-none"
-          >
-            <option value="">— Choose a project —</option>
-            {projects.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.name} ({p.district})
-              </option>
-            ))}
-          </select>
-          <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
-        </div>
-      </div>
-
-      {/* Summary cards */}
-      {projectId && payments.length > 0 && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-          {(["assessed", "sanctioned", "disbursed", "failed"] as const).map((status) => {
-            const count = payments.filter((p) => p.status === status).length;
-            return (
-              <div key={status} className="bg-white rounded-xl border px-4 py-3 text-center">
-                <div className="text-2xl font-bold text-gray-800">{count}</div>
-                <span className={`inline-block text-xs font-semibold px-2 py-0.5 rounded-full ${STATUS_STYLE[status]} mt-1`}>
-                  {status}
-                </span>
-              </div>
-            );
-          })}
-        </div>
-      )}
-
-      {/* Payments table */}
-      {!projectId && (
-        <div className="text-center py-16 text-gray-400">
-          <Banknote className="h-12 w-12 mx-auto mb-3 opacity-50" />
-          <p className="text-lg font-semibold text-gray-500">Select a project to view payments</p>
-          <p className="text-sm mt-1">Track compensation disbursement from assessment through PFMS DBT.</p>
-        </div>
-      )}
-
-      {projectId && isLoading && (
-        <div className="flex items-center justify-center py-12 text-gray-400">
-          <Loader2 className="h-5 w-5 animate-spin mr-2" />
-          Loading payments…
-        </div>
-      )}
-
-      {error && (
-        <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-700 flex items-center gap-2">
-          <AlertTriangle className="h-4 w-4" />
-          Failed to load payments
-        </div>
-      )}
-
-      {projectId && !isLoading && payments.length === 0 && !error && (
-        <div className="text-center py-12 text-gray-400">
-          <p>No compensation payments for this project yet.</p>
-          <p className="text-xs mt-1">Awards must be passed first (see /awards).</p>
-        </div>
-      )}
-
-      {payments.length > 0 && (
-        <div className="bg-white rounded-2xl border shadow-sm overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b bg-gray-50 text-left">
-                  <th className="px-4 py-3 font-medium text-gray-500">ULPIN</th>
-                  <th className="px-4 py-3 font-medium text-gray-500">Owner</th>
-                  <th className="px-4 py-3 font-medium text-gray-500 text-right">Assessed</th>
-                  <th className="px-4 py-3 font-medium text-gray-500 text-center">Status</th>
-                  <th className="px-4 py-3 font-medium text-gray-500 text-center">PFMS Ref</th>
-                  <th className="px-4 py-3 font-medium text-gray-500 text-center">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {payments.map((payment) => {
-                  const transitions = VALID_TRANSITIONS[payment.status] ?? [];
-                  return (
-                    <tr key={payment.id} className="border-b last:border-0 hover:bg-gray-50 transition-colors">
-                      <td className="px-4 py-3 font-mono text-xs text-amber-700">{payment.ulpin ?? "—"}</td>
-                      <td className="px-4 py-3 text-gray-600">{payment.owner_name ?? "—"}</td>
-                      <td className="px-4 py-3 text-right text-gray-700">{formatCurrency(payment.amount_assessed)}</td>
-                      <td className="px-4 py-3 text-center">
-                        <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_STYLE[payment.status]}`}>
-                          {payment.status}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-center text-xs text-gray-500 font-mono">
-                        {payment.mock_pfms_ref ?? "—"}
-                      </td>
-                      <td className="px-4 py-3 text-center">
-                        <PaymentActions
-                          paymentId={payment.id}
-                          currentStatus={payment.status}
-                          transitions={transitions}
-                          onUpdated={mutate}
-                        />
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+      <div className="mx-auto max-w-5xl space-y-6">
+        {/* Header */}
+        <div className="bg-white/80 backdrop-blur-md rounded-2xl border border-slate-200/80 p-6 sm:p-8 shadow-sm flex items-center gap-4 relative overflow-hidden animate-fade-in">
+          <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-gradient-to-b from-orange-500 to-amber-500" />
+          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center text-white shadow-md shadow-orange-500/20 shrink-0">
+            <Banknote className="h-6 w-6" />
           </div>
-
-          {/* Summary */}
-          <div className="px-4 py-3 bg-gray-50 border-t flex items-center gap-6 text-xs text-gray-500">
-            <span>
-              Total Payments: <span className="font-semibold text-gray-700">{payments.length}</span>
-            </span>
-            <span>
-              Assessed: <span className="font-semibold text-gray-700">{formatCurrency(totalAssessed)}</span>
-            </span>
-            <span>
-              Disbursed: <span className="font-semibold text-green-700">{formatCurrency(totalDisbursed)}</span>
-            </span>
+          <div>
+            <div className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-orange-50 text-orange-700 border border-orange-200 mb-1">
+              <Sparkles className="w-3 h-3 text-orange-500" />
+              Direct Benefit Transfer
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-heading font-extrabold text-slate-900 tracking-tight">
+              Compensation Disbursement Console
+            </h1>
+            <p className="text-xs sm:text-sm text-slate-500 mt-1">
+              RFCTLARR §38(1) — DBT-based disbursement lifecycle linked to Public Financial Management System (PFMS).
+            </p>
           </div>
         </div>
-      )}
+
+        {/* Project selector */}
+        <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-5 animate-fade-in">
+          <label className="text-xs font-semibold text-slate-700 mb-1.5 block font-mono uppercase">
+            Select Infrastructure Corridor
+          </label>
+          <div className="relative">
+            <select
+              value={projectId}
+              onChange={(e) => setProjectId(e.target.value)}
+              className="w-full px-4 py-3 text-xs bg-slate-50/70 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:border-orange-500 appearance-none font-medium text-slate-800"
+            >
+              <option value="">— Choose a corridor project —</option>
+              {projects.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.name} ({p.district}, {p.state})
+                </option>
+              ))}
+            </select>
+            <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
+          </div>
+        </div>
+
+        {/* Summary cards */}
+        {projectId && payments.length > 0 && (
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 animate-fade-in">
+            {(["assessed", "sanctioned", "disbursed", "failed"] as const).map((status) => {
+              const count = payments.filter((p) => p.status === status).length;
+              return (
+                <div key={status} className="bg-white rounded-2xl border border-slate-200/80 p-4 sm:p-5 shadow-sm">
+                  <div className="text-2xl sm:text-3xl font-heading font-bold text-slate-900 font-mono">{count}</div>
+                  <span className={`inline-block text-[11px] font-mono font-bold px-2.5 py-0.5 rounded-full border ${STATUS_STYLE[status]} mt-2 uppercase`}>
+                    {status}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Empty state */}
+        {!projectId && (
+          <div className="text-center py-20 bg-white rounded-2xl border border-dashed border-slate-200 text-slate-400 p-8 animate-fade-in">
+            <Banknote className="h-12 w-12 mx-auto mb-3 text-slate-300" />
+            <p className="text-base font-heading font-bold text-slate-700">Select a Project to Inspect Payments</p>
+            <p className="text-xs mt-1 text-slate-400">Track compensation disbursement from award valuation through DBT disbursement.</p>
+          </div>
+        )}
+
+        {projectId && isLoading && (
+          <div className="flex items-center justify-center py-16 text-slate-400 gap-2.5">
+            <Loader2 className="h-6 w-6 animate-spin text-orange-500" />
+            <span className="text-xs font-medium">Loading payments…</span>
+          </div>
+        )}
+
+        {error && (
+          <div className="bg-red-50 border border-red-200 rounded-2xl p-4 text-xs font-medium text-red-700 flex items-center gap-2">
+            <AlertTriangle className="h-4 w-4 text-red-500" />
+            Failed to load compensation records
+          </div>
+        )}
+
+        {projectId && !isLoading && payments.length === 0 && !error && (
+          <div className="text-center py-16 bg-white rounded-2xl border border-slate-200 p-8 text-slate-400">
+            <p className="font-heading font-bold text-slate-700">No Compensation Records Found</p>
+            <p className="text-xs mt-1 text-slate-400">Statutory awards must be declared first in the Awards console.</p>
+          </div>
+        )}
+
+        {payments.length > 0 && (
+          <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden animate-fade-in">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-slate-50/80 text-slate-400 border-b border-slate-100 uppercase font-mono font-semibold text-[10px]">
+                  <tr>
+                    <th className="p-3.5">ULPIN</th>
+                    <th className="p-3.5">Owner Record</th>
+                    <th className="p-3.5 text-right">Assessed Amount</th>
+                    <th className="p-3.5 text-center">Status</th>
+                    <th className="p-3.5 text-center">PFMS Reference</th>
+                    <th className="p-3.5 text-center">Lifecycle Transition</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {payments.map((payment) => {
+                    const transitions = VALID_TRANSITIONS[payment.status] ?? [];
+                    return (
+                      <tr key={payment.id} className="hover:bg-orange-50/30 transition-colors">
+                        <td className="p-3.5 font-mono text-orange-700 font-medium">{payment.ulpin ?? "—"}</td>
+                        <td className="p-3.5 text-slate-700 font-medium">{payment.owner_name ?? "—"}</td>
+                        <td className="p-3.5 text-right font-mono font-bold text-slate-900">
+                          {formatCurrency(payment.amount_assessed)}
+                        </td>
+                        <td className="p-3.5 text-center">
+                          <span className={`inline-block px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase border ${STATUS_STYLE[payment.status]}`}>
+                            {payment.status}
+                          </span>
+                        </td>
+                        <td className="p-3.5 text-center text-xs text-slate-500 font-mono">
+                          {payment.mock_pfms_ref ?? "—"}
+                        </td>
+                        <td className="p-3.5 text-center">
+                          <PaymentActions
+                            paymentId={payment.id}
+                            currentStatus={payment.status}
+                            transitions={transitions}
+                            onUpdated={mutate}
+                          />
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Summary */}
+            <div className="p-4 bg-slate-50/70 border-t border-slate-100 flex items-center gap-6 text-xs text-slate-500 font-mono flex-wrap">
+              <span>
+                Total Records: <strong className="text-slate-800">{payments.length}</strong>
+              </span>
+              <span>
+                Total Assessed: <strong className="text-slate-900">{formatCurrency(totalAssessed)}</strong>
+              </span>
+              <span>
+                Disbursed: <strong className="text-emerald-700">{formatCurrency(totalDisbursed)}</strong>
+              </span>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
@@ -238,7 +256,7 @@ function PaymentActions({
   const [updating, setUpdating] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  if (transitions.length === 0) return <span className="text-xs text-gray-400">—</span>;
+  if (transitions.length === 0) return <span className="text-xs text-slate-400 font-mono">—</span>;
 
   const handleTransition = async (newStatus: string) => {
     setUpdating(newStatus);
@@ -265,19 +283,19 @@ function PaymentActions({
   };
 
   return (
-    <div className="flex items-center gap-1 justify-center">
+    <div className="flex items-center gap-1.5 justify-center">
       {transitions.map((t) => (
         <button
           key={t}
           onClick={() => handleTransition(t)}
           disabled={updating !== null}
           title={`Mark as ${t}`}
-          className={`px-2 py-1 text-[10px] font-semibold rounded transition-colors disabled:opacity-50 ${
+          className={`px-2.5 py-1 text-[10px] font-mono font-bold uppercase rounded-lg transition-all disabled:opacity-50 cursor-pointer ${
             t === "disbursed"
-              ? "bg-green-100 text-green-700 hover:bg-green-200"
+              ? "bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100"
               : t === "sanctioned"
-              ? "bg-blue-100 text-blue-700 hover:bg-blue-200"
-              : "bg-red-100 text-red-700 hover:bg-red-200"
+              ? "bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100"
+              : "bg-red-50 text-red-700 border border-red-200 hover:bg-red-100"
           }`}
         >
           {updating === t ? (
@@ -292,7 +310,7 @@ function PaymentActions({
         </button>
       ))}
       {error && (
-        <span className="text-[10px] text-red-500 ml-1">{error}</span>
+        <span className="text-[10px] text-red-500 font-mono ml-1">{error}</span>
       )}
     </div>
   );
