@@ -411,7 +411,7 @@ export default function LandingPage() {
               </div>
 
               {/* Trust row */}
-              <div className="flex flex-wrap gap-x-5 gap-y-1.5 pt-4 border-t border-border/60 animate-fade-in" style={{ animationDelay: "400ms" }}>
+              {/* <div className="flex flex-wrap gap-x-5 gap-y-1.5 pt-4 border-t border-border/60 animate-fade-in" style={{ animationDelay: "400ms" }}>
                 {[
                   t("hero.statStages", "10 Statutory Stages"),
                   t("hero.statUlpin", "100% ULPIN-Keyed"),
@@ -423,14 +423,14 @@ export default function LandingPage() {
                     {item}
                   </div>
                 ))}
-              </div>
+              </div> */}
             </div>
 
             {/* Right: GIS Visual Card */}
             {/* Right: GIS Visual Card with Slow Scanning Line & Live Telemetry */}
             <div className="relative rounded-2xl bg-slate-950 overflow-hidden shadow-2xl border border-slate-700/80 aspect-[4/3] lg:aspect-auto lg:h-[460px]">
               <Image
-                src="/images/pic2.jpg"
+                src="/images/roadImage.png"
                 alt="National GIS Cadastral Map"
                 fill
                 className="object-cover opacity-75"
@@ -446,27 +446,24 @@ export default function LandingPage() {
 
               {/* Top bar */}
               <div className="absolute top-3 left-3 right-3 flex items-center justify-between z-10">
-                <span className="flex items-center gap-2 px-3 py-1 rounded-full bg-slate-950/85 backdrop-blur-md border border-slate-700/80 text-[11px] text-slate-200 font-mono">
+                {/* <span className="flex items-center gap-2 px-3 py-1 rounded-full bg-slate-950/85 backdrop-blur-md border border-slate-700/80 text-[11px] text-slate-200 font-mono">
                   <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
                   <span>CADASTRE · Sentinel-2 Multi-Band</span>
-                </span>
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-orange-500 text-white uppercase tracking-wider shadow-sm">
-                  Zoom 14.5×
-                </span>
+                </span> */}
               </div>
 
               {/* Parcel Live Badge & Popup */}
               <div className="absolute bottom-4 left-4 right-4 z-10">
-                <div className="bg-slate-950/90 backdrop-blur-md rounded-xl p-4 border border-slate-700/90 text-white space-y-2.5 shadow-2xl">
-                  <div className="flex items-center justify-between text-xs">
+                <div className="bg-slate-50/10 backdrop-blur-sm rounded-xl p-4 border border-slate-700/90 text-white space-y-2.5 shadow-2xl">
+                  <div className="flex items-center justify-between text-x">
                     <span className="font-bold text-orange-400 font-mono flex items-center gap-1.5">
                       <MapPin className="w-3.5 h-3.5 text-orange-400" /> ULPIN: 29210301001001
                     </span>
-                    <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30">
+                    <span className="text-[15px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30">
                       Sec. 19 Declared
                     </span>
                   </div>
-                  <div className="grid grid-cols-2 gap-2 text-[11px] text-slate-300">
+                  <div className="grid grid-cols-2 gap-2 text-[13px] text-slate-300">
                     <div><span className="text-slate-500">Corridor:</span> Bengaluru–Mangaluru NH-75</div>
                     <div><span className="text-slate-500">Extent:</span> 1.84 Ha (Wetland)</div>
                     <div><span className="text-slate-500">Determined Award:</span> <span className="text-emerald-400 font-bold font-mono">₹1,42,80,000</span></div>
