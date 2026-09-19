@@ -93,13 +93,13 @@ export default function NavBar() {
       icon: Archive,
       color: "text-slate-600 bg-slate-100",
     },
-    {
-      href: "/docs",
-      label: t("nav.docs", "Portal Documentation"),
-      desc: "HTML architecture & RFCTLARR guide",
-      icon: BookOpen,
-      color: "text-amber-600 bg-amber-50",
-    },
+    // {
+    //   href: "/docs",
+    //   label: t("nav.docs", "Portal Documentation"),
+    //   desc: "HTML architecture & RFCTLARR guide",
+    //   icon: BookOpen,
+    //   color: "text-amber-600 bg-amber-50",
+    // },
     ...(user?.role === "admin"
       ? [
           {
